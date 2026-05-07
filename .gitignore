@@ -1,10 +1,47 @@
-/.idea/
-/target/
-/.trae/
-/out/
-/target/PrimeGo-Project-1.0-SNAPSHOT/
-/target/classes/
-/.vscode/
-.vscode/
+# IDE
 .idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Build
+/target/
+/out/
+/.trae/
+
+# Java
+*.class
+*.jar
+*.war
+*.nar
+*.log
+
+# Environment
+.env
+.env.local
+
+# Node modules (if used)
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE temp files
+*.swp
+*.swo
+*~
+
+# BFG Repo-Cleaner
+.bfg-report/
+..bfg-report/
+*-HEAD.csv
+
+# Sensitive files
 /src/main/java/com/primego/common/util/DBUtil.java
+
+# Generated images (if temporary)
+# Uncomment if images should not be tracked
+src/main/webapp/assets/images/products/
+src/main/webapp/assets/images/rechargephotos/
+src/main/webapp/assets/images/withdrawphotos/
