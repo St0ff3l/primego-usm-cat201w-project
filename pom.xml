@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.primego</groupId>
-    <artifactId>PrimeGo-Project</artifactId>
+    <artifactId>primego-usm-cat201w-project</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
-    <name>PrimeGo E-commerce Platform</name>
-    <description>PrimeGo USM CAT201W Project</description>
+    <name>primego-usm-cat201w-project</name>
+    <description>primego-usm-cat201w-project</description>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>
@@ -100,5 +100,3 @@
         </plugins>
     </build>
 </project>
-
-

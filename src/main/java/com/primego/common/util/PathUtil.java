@@ -37,7 +37,7 @@ public class PathUtil {
         System.out.println("[PathUtil] user.dir: " + System.getProperty("user.dir"));
 
         // 2.1 Try a known project path first (handles cases where the IDE working directory differs)
-        String hardcodedPath = "/Users/zhangyifei/IdeaProjects/PrimeGo-USM-CAT201W-Project";
+        String hardcodedPath = "/Users/stoffel/CodeFile/primego-usm-cat201w-project";
         File hardcodedDir = new File(hardcodedPath + File.separator + "src" + File.separator + "main" + File.separator + "webapp");
         if (hardcodedDir.exists()) {
             String localSourcePath = hardcodedDir.getAbsolutePath() + File.separator + "assets" + File.separator + "images" + File.separator + subDir;
