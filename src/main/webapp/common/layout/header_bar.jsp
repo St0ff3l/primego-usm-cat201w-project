@@ -26,7 +26,7 @@
     <%-- Logo area --%>
     <a href="${pageContext.request.contextPath}/index.jsp" class="brand-link">
       <img src="${pageContext.request.contextPath}/assets/images/logo.png"
-           alt="PrimeGo Logo" class="brand-logo-img">
+           alt="PrimeGo Logo" class="brand-logo-img" width="40" height="40">
       <span class="brand-text">PrimeGo</span>
     </a>
 
