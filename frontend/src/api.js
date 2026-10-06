@@ -9,7 +9,11 @@ async function request(path) {
     throw new Error(`Request failed (${response.status})`)
   }
 
-  return response.json()
+  const result = await response.json()
+  if (result.code !== 200) {
+    throw new Error(result.msg || 'The API request failed')
+  }
+  return result.data
 }
 
 export function getProducts(filters = {}) {

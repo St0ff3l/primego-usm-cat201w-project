@@ -6,14 +6,14 @@ PrimeGo is a USM CAT201 e-commerce project. The repository is moving from the or
 
 - `backend/` is the RuoYi-Vue-Plus 6.x backend (Spring Boot, Sa-Token, MyBatis-Plus, MySQL, Redis/Redisson). Its system module provides administrator and staff user, role, department, menu, and permission management.
 - `admin-ui/` is the matching RuoYi-Vue-Plus Vue 3 + TypeScript administration frontend.
-- `frontend/` is the PrimeGo customer-facing Vue 3 storefront; its API connection is being migrated in a follow-up change.
+- `frontend/` is the PrimeGo customer-facing Vue 3 storefront, connected to the public product catalog API.
 - `src/main/` is the original JSP/Servlet application, retained while its business flows are migrated in stages.
 
 The framework's `sys_user` accounts are for system operators. PrimeGo customer and merchant accounts are separate business identities; their legacy registration/profile flows have not been migrated yet.
 
 ## Server database and Redis
 
-MySQL and Redis are supplied by the test/deployment server; this project does not start local database or Redis containers. Copy `.env.example` to `.env` and set the server connection values. Import `backend/script/sql/ry_vue.sql` into the target MySQL database before the first run. The script seeds the RuoYi administration data; change the seeded administrator password after first login. The legacy project did not include a tracked database schema or data export.
+MySQL and Redis are supplied by the test/deployment server; this project does not start local database or Redis containers. Copy `.env.example` to `.env` and set the server connection values. Import `backend/script/sql/ry_vue.sql` and then `backend/script/sql/primego_catalog.sql` into the target MySQL database before the first run. The first script seeds the RuoYi administration data; change the seeded administrator password after first login. The catalog script creates new category, product, and image tables; the legacy project did not include a tracked database schema or data export, so its data still needs a separate migration.
 
 ## Run the backend
 
@@ -24,7 +24,7 @@ cd backend
 set -a
 . ../.env
 set +a
-./mvnw -pl ruoyi-admin -am -DskipTests package
+mvn -pl ruoyi-admin -am -DskipTests package
 java -jar ruoyi-admin/target/ruoyi-admin.jar
 ```
 
@@ -40,7 +40,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-The admin UI listens on `http://localhost:5174` and proxies API requests to the backend. The RuoYi system user and permission screens are available after database initialization and login.
+The admin UI listens on `http://localhost:5174` and proxies API requests to `VITE_APP_PROXY_TARGET` (defaults to `http://localhost:8080`). Set it to the backend server URL when the UI and API run on different hosts. The RuoYi system user, role, and permission screens are available after database initialization and login.
 
 ## Run the PrimeGo storefront
 
@@ -50,7 +50,7 @@ npm install
 npm run dev
 ```
 
-The storefront listens on `http://localhost:5173`. The next migration change will connect its product catalog to the Plus backend and Redis cache.
+The storefront listens on `http://localhost:5173`. Its category, product search/filter, and product detail requests use the public Plus API; Vite proxies those requests to `VITE_API_TARGET` (copy `frontend/.env.example` to `frontend/.env` and set the backend address if needed). Category and product reads are cached in the configured server Redis instance.
 
 ## Migration boundary
 

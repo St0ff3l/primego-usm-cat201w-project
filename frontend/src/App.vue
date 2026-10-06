@@ -4,11 +4,15 @@ import { getCategories, getProduct, getProducts, productImageUrl } from './api'
 
 const categories = ref([])
 const products = ref([])
+const totalProducts = ref(0)
+const pageNum = ref(1)
+const loadingMore = ref(false)
 const keyword = ref('')
 const activeKeyword = ref('')
 const selectedCategory = ref(null)
 const loading = ref(true)
 const error = ref('')
+const loadMoreError = ref('')
 const selectedProduct = ref(null)
 const detailLoading = ref(false)
 
@@ -22,17 +26,47 @@ const resultLabel = computed(() => {
 
 async function loadProducts() {
   loading.value = true
+  loadingMore.value = false
+  loadMoreError.value = ''
   error.value = ''
+  pageNum.value = 1
+  products.value = []
+  totalProducts.value = 0
   try {
-    products.value = await getProducts({
+    const page = await getProducts({
       keyword: activeKeyword.value,
       categoryId: selectedCategory.value,
       inStockOnly: !activeKeyword.value && !selectedCategory.value,
+      pageNum: 1,
     })
+    products.value = page.rows
+    totalProducts.value = page.total
+    pageNum.value = page.pageNum
   } catch {
     error.value = 'We couldn’t load the collection. Check the connection and try again.'
   } finally {
     loading.value = false
+  }
+}
+
+async function loadMoreProducts() {
+  if (loadingMore.value || products.value.length >= totalProducts.value) return
+  loadingMore.value = true
+  loadMoreError.value = ''
+  try {
+    const page = await getProducts({
+      keyword: activeKeyword.value,
+      categoryId: selectedCategory.value,
+      inStockOnly: !activeKeyword.value && !selectedCategory.value,
+      pageNum: pageNum.value + 1,
+    })
+    products.value = [...products.value, ...page.rows]
+    totalProducts.value = page.total
+    pageNum.value = page.pageNum
+  } catch {
+    loadMoreError.value = 'We couldn’t load more finds. Please try again.'
+  } finally {
+    loadingMore.value = false
   }
 }
 
@@ -131,7 +165,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             <p class="eyebrow">THE PRIMEGO EDIT</p>
             <h2 id="collection-title">{{ resultLabel }}<span class="heading-star">✳</span></h2>
           </div>
-          <p class="result-count">{{ loading ? 'Finding your next favorite…' : `${products.length} ${products.length === 1 ? 'find' : 'finds'}` }}</p>
+          <p class="result-count">{{ loading ? 'Finding your next favorite…' : `${totalProducts} ${totalProducts === 1 ? 'find' : 'finds'}` }}</p>
         </div>
 
         <div class="category-row" aria-label="Filter by category">
@@ -187,6 +221,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <h3>No finds just yet.</h3>
           <p>Try another search or take a look at all the latest arrivals.</p>
           <button class="text-button" @click="selectCategory(null)">Show all finds <span>↗</span></button>
+        </div>
+
+        <div v-if="!loading && !error && products.length && products.length < totalProducts" class="load-more-row">
+          <p v-if="loadMoreError" class="load-more-error" role="alert">{{ loadMoreError }}</p>
+          <button class="text-button" :disabled="loadingMore" @click="loadMoreProducts">
+            {{ loadingMore ? 'Finding more…' : 'Load more finds' }} <span>↗</span>
+          </button>
         </div>
       </section>
 

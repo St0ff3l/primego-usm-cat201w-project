@@ -104,6 +104,12 @@
             <artifactId>ruoyi-workflow</artifactId>
         </dependency>
 
+        <!-- PrimeGo 商品目录 -->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>ruoyi-primego-catalog</artifactId>
+        </dependency>
+
         <!-- Spring Boot Admin 客户端 -->
         <dependency>
             <groupId>de.codecentric</groupId>

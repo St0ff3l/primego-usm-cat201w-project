@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dromara.primego.catalog.mapper.PrimegoCatalogMapper">
+
+    <select id="selectActiveCategories" resultType="org.dromara.primego.catalog.domain.vo.CategoryVo">
+        SELECT category_id AS id,
+               category_name AS name
+        FROM pg_category
+        WHERE category_status = 1
+        ORDER BY category_id ASC
+    </select>
+
+    <sql id="productColumns">
+        p.product_id AS id,
+        p.category_id AS categoryId,
+        p.product_name AS name,
+        p.product_description AS description,
+        p.product_price AS price,
+        p.product_stock_quantity AS stockQuantity,
+        c.category_name AS categoryName,
+        u.nick_name AS merchantName,
+        (SELECT pi.image_url
+         FROM pg_product_image pi
+         WHERE pi.product_id = p.product_id
+         ORDER BY pi.image_is_primary DESC, pi.sort_order ASC, pi.image_id ASC
+         LIMIT 1) AS imageUrl
+    </sql>
+
+    <sql id="productFilters">
+        p.product_status = 'ON_SALE'
+        <if test="query.keyword != null">
+            AND (p.product_name LIKE CONCAT('%', #{query.keyword}, '%')
+                 OR p.product_description LIKE CONCAT('%', #{query.keyword}, '%'))
+        </if>
+        <if test="query.categoryId != null">
+            AND p.category_id = #{query.categoryId}
+        </if>
+        <if test="query.minPrice != null">
+            AND p.product_price &gt;= #{query.minPrice}
+        </if>
+        <if test="query.maxPrice != null">
+            AND p.product_price &lt;= #{query.maxPrice}
+        </if>
+        <if test="query.inStockOnly == true">
+            AND p.product_stock_quantity &gt; 0
+        </if>
+    </sql>
+
+    <select id="selectProducts" resultType="org.dromara.primego.catalog.domain.vo.ProductVo">
+        SELECT <include refid="productColumns"/>
+        FROM pg_product p
+        INNER JOIN pg_category c ON c.category_id = p.category_id AND c.category_status = 1
+        LEFT JOIN sys_user u ON u.user_id = p.merchant_user_id AND u.del_flag = '0'
+        <where>
+            <include refid="productFilters"/>
+        </where>
+        ORDER BY p.product_created_at DESC, p.product_id DESC
+        LIMIT #{query.pageSize} OFFSET #{query.offset}
+    </select>
+
+    <select id="countProducts" resultType="long">
+        SELECT COUNT(*)
+        FROM pg_product p
+        INNER JOIN pg_category c ON c.category_id = p.category_id AND c.category_status = 1
+        <where>
+            <include refid="productFilters"/>
+        </where>
+    </select>
+
+    <select id="selectProductById" resultType="org.dromara.primego.catalog.domain.vo.ProductVo">
+        SELECT <include refid="productColumns"/>
+        FROM pg_product p
+        INNER JOIN pg_category c ON c.category_id = p.category_id AND c.category_status = 1
+        LEFT JOIN sys_user u ON u.user_id = p.merchant_user_id AND u.del_flag = '0'
+        WHERE p.product_id = #{productId}
+          AND p.product_status = 'ON_SALE'
+        LIMIT 1
+    </select>
+</mapper>

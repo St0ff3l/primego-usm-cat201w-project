@@ -459,6 +459,13 @@
                 <version>${revision}</version>
             </dependency>
 
+            <!-- PrimeGo 商品目录模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>ruoyi-primego-catalog</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
             <!--  api模块  -->
             <dependency>
                 <groupId>org.dromara</groupId>
