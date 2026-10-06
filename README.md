@@ -15,7 +15,20 @@ The framework's `sys_user` accounts are for system operators. PrimeGo customer a
 
 MySQL and Redis are supplied by the test/deployment server; this project does not start local database or Redis containers. Copy `.env.example` to `.env` and set the server connection values. Import `backend/script/sql/ry_vue.sql` and then `backend/script/sql/primego_catalog.sql` into the target MySQL database before the first run. The first script seeds the RuoYi administration data; change the seeded administrator password after first login. The catalog script creates new category, product, and image tables; the legacy project did not include a tracked database schema or data export, so its data still needs a separate migration.
 
-## Run the backend
+## Start the storefront and API together
+
+Use Node.js 20.19 or newer, JDK 21 or newer, and Maven. From the repository root, configure the remote MySQL and Redis values once, install the storefront dependencies once, then start both applications with one command:
+
+```sh
+cp .env.example .env
+# Edit .env with the test server's MySQL and Redis connection values.
+npm --prefix frontend ci
+npm run dev
+```
+
+The root `npm run dev` starts the storefront on `http://localhost:5173`, builds the backend, and starts the API on `http://localhost:8080`. Press Ctrl+C to stop both. The backend connects to the configured server database and Redis; import `backend/script/sql/ry_vue.sql` and `backend/script/sql/primego_catalog.sql` there before the first run. Do not commit `.env`.
+
+## Run the backend manually
 
 Use JDK 21 or newer and Maven. The development profile reads MySQL and Redis settings from the environment variables listed in `.env.example`.
 
