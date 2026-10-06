@@ -17,16 +17,14 @@ MySQL and Redis are supplied by the test/deployment server; this project does no
 
 ## Start the storefront and API together
 
-Use Node.js 20.19 or newer, JDK 21 or newer, and Maven. From the repository root, configure the remote MySQL and Redis values once, install the storefront dependencies once, then start both applications with one command:
+Use Node.js 20.19 or newer. From the repository root, install the storefront dependencies once, then start the storefront without connecting to any database:
 
 ```sh
-cp .env.example .env
-# Edit .env with the test server's MySQL and Redis connection values.
 npm --prefix frontend ci
 npm run dev
 ```
 
-The root `npm run dev` starts the storefront on `http://localhost:5173`, builds the backend, and starts the API on `http://localhost:8080`. Press Ctrl+C to stop both. The backend connects to the configured server database and Redis; import `backend/script/sql/ry_vue.sql` and `backend/script/sql/primego_catalog.sql` there before the first run. Do not commit `.env`.
+The root `npm run dev` starts the storefront on `http://localhost:5173`; press Ctrl+C to stop it. Without complete server settings, the page runs without an API, so product and category data will not load. To start the API too, use JDK 21 or newer and Maven, copy `.env.example` to `.env`, fill in the test server's MySQL and Redis connection values, then run `npm run dev` again. It will build the backend and start the API on `http://localhost:8080`. Import `backend/script/sql/ry_vue.sql` and `backend/script/sql/primego_catalog.sql` into the server database before starting the API. Do not commit `.env`.
 
 ## Run the backend manually
 

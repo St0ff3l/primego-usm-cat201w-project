@@ -16,9 +16,10 @@
 *.nar
 *.log
 
-# Environment
+# Local environment files and secret overrides
 .env
 .env.local
+.env.*.local
 
 # Node modules (if used)
 node_modules/

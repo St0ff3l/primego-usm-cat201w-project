@@ -17,27 +17,21 @@ const requiredVariables = [
   'PRIMEGO_REDIS_PASSWORD',
 ]
 
-if (!existsSync(envPath)) {
-  console.error('[dev] Missing root .env. Copy .env.example to .env and set the server MySQL/Redis connection values first.')
-  process.exit(1)
-}
-
-try {
-  process.loadEnvFile(envPath)
-} catch (error) {
-  console.error(`[dev] Could not read .env: ${error.message}`)
-  process.exit(1)
+let envReadError = ''
+if (existsSync(envPath)) {
+  try {
+    process.loadEnvFile(envPath)
+  } catch (error) {
+    envReadError = error.message
+  }
 }
 
 const unconfiguredVariables = requiredVariables.filter((name) => {
   const value = process.env[name]?.trim()
   return !value || /^(change_me|.*\.example.*)$/i.test(value)
 })
-
-if (unconfiguredVariables.length > 0) {
-  console.error(`[dev] Set real server values in .env for: ${unconfiguredVariables.join(', ')}`)
-  process.exit(1)
-}
+const backendConfigured = !envReadError && unconfiguredVariables.length === 0
+const hasEnvFile = existsSync(envPath)
 
 if (!existsSync(resolve(frontendDir, 'node_modules/.bin/vite'))) {
   console.error('[dev] Storefront dependencies are missing. Run `npm --prefix frontend ci` once, then retry.')
@@ -58,7 +52,8 @@ function stopAll(signal, code = 0) {
 }
 
 process.on('SIGINT', () => {
-  console.log('\n[dev] Stopping storefront and backend...')
+  if (shuttingDown) return
+  console.log('\n[dev] Stopping development servers...')
   stopAll('SIGTERM')
 })
 process.on('SIGTERM', () => stopAll('SIGTERM'))
@@ -113,16 +108,29 @@ function buildBackend() {
 console.log('[dev] Starting the PrimeGo storefront at http://localhost:5173')
 startService('storefront', 'npm', ['run', 'dev'], frontendDir)
 
-const buildExitCode = await buildBackend()
-if (!shuttingDown) {
-  if (buildExitCode !== 0) {
-    console.error('[dev] Backend build failed; stopping the storefront.')
-    stopAll('SIGTERM', buildExitCode)
-  } else if (!existsSync(appJar)) {
-    console.error(`[dev] Backend build succeeded but the application jar was not found: ${appJar}`)
-    stopAll('SIGTERM', 1)
+if (!backendConfigured) {
+  if (envReadError) {
+    console.warn(`[dev] Could not read .env (${envReadError}); starting the storefront only.`)
+  } else if (!hasEnvFile) {
+    console.log('[dev] No root .env found; starting the storefront only without a database connection.')
+  } else if (unconfiguredVariables.length > 0) {
+    console.log(`[dev] Server settings are incomplete (${unconfiguredVariables.join(', ')}); starting the storefront only.`)
   } else {
-    console.log('[dev] Starting the API at http://localhost:8080')
-    startService('backend', 'java', ['-jar', appJar], backendDir)
+    console.log('[dev] No server settings found; starting the storefront only.')
+  }
+  console.log('[dev] Product and category data need the API. Add server settings to .env later to start both apps.')
+} else {
+  const buildExitCode = await buildBackend()
+  if (!shuttingDown) {
+    if (buildExitCode !== 0) {
+      console.error('[dev] Backend build failed; stopping the storefront.')
+      stopAll('SIGTERM', buildExitCode)
+    } else if (!existsSync(appJar)) {
+      console.error(`[dev] Backend build succeeded but the application jar was not found: ${appJar}`)
+      stopAll('SIGTERM', 1)
+    } else {
+      console.log('[dev] Starting the API at http://localhost:8080')
+      startService('backend', 'java', ['-jar', appJar], backendDir)
+    }
   }
 }
