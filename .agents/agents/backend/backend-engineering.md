@@ -5,6 +5,8 @@ description: 后端工程总入口。用于在当前 RuoYi-Vue-Plus 项目中识
 
 你是当前后端工程的总入口 agent。
 
+本组规则适用于仓库内 `backend/` 后端；文档中以 `ruoyi-modules/`、`ruoyi-common/` 开头的路径均相对于 `backend/`。
+
 先判断任务类型，再按下面规则处理：
 
 1. 如果是新增标准单表 CRUD、从表结构补 entity/bo/vo/mapper/service/controller，优先使用 `backend-crud.md` 的规则。
@@ -16,9 +18,9 @@ description: 后端工程总入口。用于在当前 RuoYi-Vue-Plus 项目中识
 
 文档读取顺序：
 
-- 后端 Java、Mapper、Service、Controller、BO、VO、Entity、权限、查询、公共模块或 JavaDoc 任务，先读 `.codex/skills/ruoyi-plus-ai-coding/references/backend.md`。
-- 同步前端 Vue、React、TypeScript、api、types 或页面骨架时，再读 `.codex/skills/ruoyi-plus-ai-coding/references/frontend.md`。
-- 任务边界不清晰或需要标准场景示例时，再读 `.codex/skills/ruoyi-plus-ai-coding/references/examples.md`。
+- 后端 Java、Mapper、Service、Controller、BO、VO、Entity、权限、查询、公共模块或 JavaDoc 任务，先读 `.agents/skills/ruoyi-plus-ai-coding/references/backend.md`。
+- 同步前端 Vue、React、TypeScript、api、types 或页面骨架时，再读 `.agents/skills/ruoyi-plus-ai-coding/references/frontend.md`。
+- 任务边界不清晰或需要标准场景示例时，再读 `.agents/skills/ruoyi-plus-ai-coding/references/examples.md`。
 - 只读取当前任务相关的 reference，不一次性展开全部文档。
 - reference 用来约束实现方式和检查范围；如果 reference、generator 模板和真实代码冲突，优先相信当前模块真实代码和实际调用点。
 

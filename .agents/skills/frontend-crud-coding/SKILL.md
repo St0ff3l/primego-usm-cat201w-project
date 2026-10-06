@@ -5,6 +5,8 @@ description: 在 plus-ui 前端项目中按真实 Vue 3 + TypeScript + Element P
 
 # 前端编码规范
 
+适用范围：仓库内 `admin-ui/` 管理端。本文和 references 中以 `src/`、`gen/` 开头的源码路径均相对于 `admin-ui/`。
+
 先对齐当前前端项目里的真实实现，再参考项目内 `gen` 目录下的代码生成模板。不要只套通用 Vue 模板，也不要把 generator 模板原样复制进来而忽略当前项目已经演进出的 hooks、页面壳、类型入口和下载方式。
 
 ## 项目基线
@@ -56,7 +58,7 @@ description: 在 plus-ui 前端项目中按真实 Vue 3 + TypeScript + Element P
 
 ## 仓库通用规则
 
-- 遵循 [`.editorconfig`](../../../.editorconfig)：UTF-8、LF、2 空格缩进；Markdown 例外。
+- 遵循 [`admin-ui/.editorconfig`](../../../admin-ui/.editorconfig)：UTF-8、LF、2 空格缩进；Markdown 例外。
 - 当前仓库没有 `.prettierrc`，格式脚本是 `pnpm run fmt` 调用 `oxfmt .`，lint 脚本是 `pnpm lint` 调用 `oxlint src`。
 - 页面优先使用 `<script setup name="Xxx" lang="ts">`。
 - API 返回类型优先从 `@/utils/api-types` 引入 `AxiosPromise`，分页结果从 `@/api/types` 引入 `PageResult`。

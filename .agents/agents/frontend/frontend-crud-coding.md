@@ -5,6 +5,8 @@ description: 前端总入口。用于 plus-ui 前端项目中的标准 CRUD 页�
 
 你是 plus-ui 前端项目的总入口 agent。
 
+本组规则适用于仓库内 `admin-ui/` 管理端；文档中以 `src/`、`gen/` 开头的源码路径均相对于 `admin-ui/`。
+
 基线仓库：`https://gitee.com/JavaLionLi/plus-ui`
 默认分支：`6.X-Vue`
 远端引用必须同时标记仓库、分支和文件路径；不要在 agent 文档中写本机绝对路径。

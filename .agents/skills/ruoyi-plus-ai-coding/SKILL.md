@@ -5,6 +5,8 @@ description: 在仓库内按代码生成器模板、项目 reference 文档和�
 
 # RuoYi Plus AI 编码规范
 
+适用范围：仓库内 `backend/` 后端。本文和 references 中以 `ruoyi-modules/`、`ruoyi-common/` 开头的源码路径均相对于 `backend/`。
+
 先对齐代码生成器产物，再叠加仓库里真实业务代码已经形成的更强约定。
 
 ## 适用场景
@@ -79,7 +81,7 @@ Vue 3、React、TypeScript API 文件、生成式列表页、表单状态、字�
 
 ## 仓库通用规则
 
-- 遵循 [`.editorconfig`](../../../.editorconfig)：UTF-8、LF，默认 4 空格，JSON/YAML 为 2 空格。
+- 遵循 [`backend/.editorconfig`](../../../backend/.editorconfig)：UTF-8、LF，默认 4 空格，JSON/YAML 为 2 空格。
 - 不要把 `BaseMapperPlus`、`PageQuery`、`PageResult`、`R`、`MapstructUtils` 或项目工具类替换成临时自造方案。
 - 仓库已使用 `List.of(...)` 的地方，数组转列表优先继续沿用。
 - import、注解顺序、文件结构以附近代码为准，不要顺手重排整个文件。

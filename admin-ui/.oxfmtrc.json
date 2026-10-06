@@ -4,8 +4,6 @@
     "src/types/components.d.ts",
     "src/types/auto-imports.d.ts",
     ".ai_state",
-    ".claude",
-    ".codex",
     "doc"
   ],
   "printWidth": 120,
