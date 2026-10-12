@@ -4,6 +4,7 @@ import CartPage from './pages/CartPage.vue'
 import CheckoutPage from './pages/CheckoutPage.vue'
 import AdminProductReviewDetailPage from './pages/AdminProductReviewDetailPage.vue'
 import AdminProductReviewListPage from './pages/AdminProductReviewListPage.vue'
+import AdminDashboardPage from './pages/AdminDashboardPage.vue'
 import LegacyFallbackPage from './pages/LegacyFallbackPage.vue'
 import LoginPage from './pages/LoginPage.vue'
 import MerchantDashboardPage from './pages/MerchantDashboardPage.vue'
@@ -31,6 +32,7 @@ const routes = {
   '/public/signup.jsp': SignupPage,
   '/admin/product/review/list': AdminProductReviewListPage,
   '/admin/product/review': AdminProductReviewDetailPage,
+  '/admin/dashboard': AdminDashboardPage,
   '/register': SignupPage,
   '/customer/product/search_result.jsp': SearchResultPage,
   '/customer/product/product_detail.jsp': ProductDetailPage,
