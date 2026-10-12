@@ -1,5 +1,6 @@
 package com.primego.product.servlet;
 
+import com.primego.common.util.JsonUtil;
 import com.primego.product.dao.ProductDAO;
 import com.primego.user.model.Role;
 import com.primego.user.model.User;
@@ -19,14 +20,24 @@ public class AdminProductReviewActionServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+        boolean jsonRequest = isJsonRequest(req);
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
+            if (jsonRequest) {
+                writeFailure(resp, HttpServletResponse.SC_UNAUTHORIZED, "Please log in to review products.");
+                return;
+            }
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
         User user = (User) session.getAttribute("user");
         if (user.getRole() != Role.ADMIN) {
+            if (jsonRequest) {
+                writeFailure(resp, HttpServletResponse.SC_FORBIDDEN, "Only administrators can review products.");
+                return;
+            }
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
             return;
         }
@@ -36,15 +47,16 @@ public class AdminProductReviewActionServlet extends HttpServlet {
         String reason = req.getParameter("reason");
 
         if (idStr == null || action == null) {
-            resp.sendRedirect(req.getContextPath() + "/admin/product/review/list");
+            respond(req, resp, "/admin/product/review/list", "error");
             return;
         }
 
         int productId;
         try {
             productId = Integer.parseInt(idStr);
+            if (productId < 1) throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            resp.sendRedirect(req.getContextPath() + "/admin/product/review/list");
+            respond(req, resp, "/admin/product/review/list", "error");
             return;
         }
 
@@ -59,10 +71,36 @@ public class AdminProductReviewActionServlet extends HttpServlet {
             ok = productDAO.updateProductAuditByAdmin(productId, "REJECTED", trimmedReason);
             msg = ok ? "rejected" : "error";
         } else {
-            resp.sendRedirect(req.getContextPath() + "/admin/product/review?productId=" + productId);
+            respond(req, resp, "/admin/product/review?productId=" + productId, "error");
             return;
         }
 
-        resp.sendRedirect(req.getContextPath() + "/admin/product/review?productId=" + productId + "&msg=" + msg);
+        respond(req, resp, "/admin/product/review?productId=" + productId + "&msg=" + msg, msg);
+    }
+
+    private boolean isJsonRequest(HttpServletRequest req) {
+        String accept = req.getHeader("Accept");
+        return accept != null && accept.contains("application/json");
+    }
+
+    private void respond(HttpServletRequest req, HttpServletResponse resp, String redirect, String message)
+            throws IOException {
+        if (!isJsonRequest(req)) {
+            resp.sendRedirect(req.getContextPath() + redirect);
+            return;
+        }
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+        resp.setHeader("Cache-Control", "no-store");
+        resp.getWriter().write("{\"code\":200,\"msg\":\"success\",\"data\":{\"message\":"
+            + JsonUtil.quote(message) + ",\"redirect\":" + JsonUtil.quote(redirect) + "}}");
+    }
+
+    private void writeFailure(HttpServletResponse resp, int status, String message) throws IOException {
+        resp.setStatus(status);
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+        resp.setHeader("Cache-Control", "no-store");
+        resp.getWriter().write("{\"code\":" + status + ",\"msg\":" + JsonUtil.quote(message) + "}");
     }
 }
