@@ -2,7 +2,9 @@ package com.primego.wallet.servlet;
 
 import com.primego.wallet.dao.WalletDAO;
 import com.primego.wallet.model.WalletTransaction;
+import com.primego.user.model.Role;
 import com.primego.user.model.User;
+import com.primego.common.util.JsonUtil;
 import com.primego.common.util.PathUtil;
 
 import javax.servlet.ServletException;
@@ -26,21 +28,49 @@ public class TopUpServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 1. Get current user
-        HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("user");
+        boolean jsonRequest = isJsonRequest(request);
+        HttpSession session = jsonRequest ? request.getSession(false) : request.getSession();
+        User user = session == null ? null : (User) session.getAttribute("user");
 
         if (user == null) {
+            if (jsonRequest) {
+                writeFailure(response, HttpServletResponse.SC_UNAUTHORIZED, "Please log in to submit a top-up.");
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/public/login.jsp");
             return;
         }
+        if (jsonRequest && user.getRole() != Role.CUSTOMER) {
+            writeFailure(response, HttpServletResponse.SC_FORBIDDEN, "Only customers can submit wallet top-ups.");
+            return;
+        }
 
-        // 2. Retrieve form data
         String amountStr = request.getParameter("amount");
-        Part filePart = request.getPart("receipt");
 
         try {
             BigDecimal amount = new BigDecimal(amountStr);
+            if (amount.compareTo(BigDecimal.ONE) < 0) {
+                if (jsonRequest) {
+                    writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Top-up amount must be at least RM 1.00.");
+                } else {
+                    request.setAttribute("error", "Please enter an amount of at least RM 1.00.");
+                    request.getRequestDispatcher("/public/wallet/topup.jsp").forward(request, response);
+                }
+                return;
+            }
+
+            Part filePart = request.getPart("receipt");
+            if (filePart == null || filePart.getSize() == 0 || filePart.getSubmittedFileName() == null
+                    || filePart.getSubmittedFileName().trim().isEmpty() || filePart.getContentType() == null
+                    || !filePart.getContentType().startsWith("image/")) {
+                if (jsonRequest) {
+                    writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Please upload a valid receipt image.");
+                } else {
+                    request.setAttribute("error", "Please upload a valid receipt image.");
+                    request.getRequestDispatcher("/public/wallet/topup.jsp").forward(request, response);
+                }
+                return;
+            }
 
             // 3. Handle file upload
             // Get deployment directory path (runtime usage)
@@ -89,20 +119,56 @@ public class TopUpServlet extends HttpServlet {
             boolean success = dao.requestTopUp(transaction);
 
             if (success) {
-                session.setAttribute("message", "Top-up request submitted! Waiting for approval.");
-                response.sendRedirect(request.getContextPath() + "/public/wallet/wallet.jsp");
+                String message = "Top-up request submitted! Waiting for approval.";
+                if (jsonRequest) {
+                    writeSuccess(response, message);
+                } else {
+                    session.setAttribute("message", message);
+                    response.sendRedirect(request.getContextPath() + "/public/wallet/wallet.jsp");
+                }
             } else {
-                request.setAttribute("error", "Database error. Please try again.");
-                request.getRequestDispatcher("/public/wallet/topup.jsp").forward(request, response);
+                if (jsonRequest) {
+                    writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error. Please try again.");
+                } else {
+                    request.setAttribute("error", "Database error. Please try again.");
+                    request.getRequestDispatcher("/public/wallet/topup.jsp").forward(request, response);
+                }
             }
 
         } catch (NumberFormatException e) {
-            request.setAttribute("error", "Invalid amount format.");
-            request.getRequestDispatcher("/public/wallet/topup.jsp").forward(request, response);
+            if (jsonRequest) {
+                writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Enter a valid top-up amount.");
+            } else {
+                request.setAttribute("error", "Invalid amount format.");
+                request.getRequestDispatcher("/public/wallet/topup.jsp").forward(request, response);
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "An error occurred: " + e.getMessage());
-            request.getRequestDispatcher("/public/wallet/topup.jsp").forward(request, response);
+            if (jsonRequest) {
+                writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unable to submit your top-up request.");
+            } else {
+                request.setAttribute("error", "An error occurred: " + e.getMessage());
+                request.getRequestDispatcher("/public/wallet/topup.jsp").forward(request, response);
+            }
         }
+    }
+
+    private boolean isJsonRequest(HttpServletRequest request) {
+        return request.getHeader("Accept") != null && request.getHeader("Accept").contains("application/json");
+    }
+
+    private void writeSuccess(HttpServletResponse response, String message) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Cache-Control", "no-store");
+        response.getWriter().write("{\"code\":200,\"msg\":\"success\",\"data\":{\"message\":" + JsonUtil.quote(message) + "}}");
+    }
+
+    private void writeFailure(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Cache-Control", "no-store");
+        response.getWriter().write("{\"code\":" + status + ",\"msg\":" + JsonUtil.quote(message) + "}");
     }
 }

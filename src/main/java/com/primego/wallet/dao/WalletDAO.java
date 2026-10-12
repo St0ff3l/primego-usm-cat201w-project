@@ -331,6 +331,7 @@ public class WalletDAO {
                     t.setStatus(rs.getString("status"));
                     t.setReceiptImage(rs.getString("receipt_image"));
                     t.setCreatedAt(rs.getTimestamp("created_at"));
+                    t.setRemarks(rs.getString("remarks"));
                     list.add(t);
                 }
             }

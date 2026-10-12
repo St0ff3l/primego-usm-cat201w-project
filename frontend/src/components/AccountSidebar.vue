@@ -17,7 +17,7 @@ defineProps({ active: { type: String, required: true } })
       <a href="/profile?tab=addresses" :class="['nav-item', { active: active === 'addresses' }]">
         <i class="ri-map-pin-line"></i><span>Addresses</span>
       </a>
-      <a :href="legacyPageUrl('/public/wallet/wallet.jsp')" class="nav-item">
+      <a href="/public/wallet/wallet.jsp" class="nav-item">
         <i class="ri-wallet-line"></i><span>Wallet</span>
       </a>
       <a href="/profile?tab=settings" :class="['nav-item', { active: active === 'settings' }]">

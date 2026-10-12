@@ -7,6 +7,9 @@ import LoginPage from './pages/LoginPage.vue'
 import OrderHistoryPage from './pages/OrderHistoryPage.vue'
 import PaymentResultPage from './pages/PaymentResultPage.vue'
 import ProfilePage from './pages/ProfilePage.vue'
+import TopUpPage from './pages/TopUpPage.vue'
+import WalletPage from './pages/WalletPage.vue'
+import WithdrawPage from './pages/WithdrawPage.vue'
 import ProductDetailPage from './pages/ProductDetailPage.vue'
 import SearchResultPage from './pages/SearchResultPage.vue'
 import SignupPage from './pages/SignupPage.vue'
@@ -26,6 +29,9 @@ const routes = {
   '/customer/order/payment_failed.jsp': PaymentResultPage,
   '/customer/orders': OrderHistoryPage,
   '/profile': ProfilePage,
+  '/public/wallet/wallet.jsp': WalletPage,
+  '/public/wallet/topup.jsp': TopUpPage,
+  '/public/wallet/withdraw.jsp': WithdrawPage,
 }
 
 const currentPage = routes[window.location.pathname] || LegacyFallbackPage
