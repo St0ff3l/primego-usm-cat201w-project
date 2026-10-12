@@ -98,7 +98,7 @@ onMounted(loadHome)
 
     <footer>
       <p>PrimeGo E-Commerce | USM CAT201 Project</p>
-      <p class="footer-note">Developed using Vue 3, CSS, and Java.</p>
+      <p class="footer-note">Developed using Native HTML, CSS, and JS (No Frameworks).</p>
     </footer>
     <LoginCheckModal :open="loginModalOpen" @close="loginModalOpen = false" />
   </div>

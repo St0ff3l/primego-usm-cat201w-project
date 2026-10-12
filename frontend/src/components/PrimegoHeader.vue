@@ -116,10 +116,10 @@ onUnmounted(() => window.removeEventListener('keydown', closeOnEscape))
 .brand-text { font-size: 1.5rem; font-weight: 700; color: #d63031; letter-spacing: 1px; line-height: 1; transition: color .3s ease; }
 .brand-link:hover .brand-logo-img { transform: scale(1.1); }
 .brand-link:hover .brand-text { color: #ff9500; }
-.nav-menu { display: flex; justify-content: center; align-items: center; list-style: none; gap: 20px; margin: 0; padding: 0; }
-.nav-menu a { text-decoration: none; color: #444; font-weight: 600; font-size: .92rem; padding: 8px 12px; border-radius: 20px; transition: all .3s ease; white-space: nowrap; }
+.nav-menu { display: flex; justify-content: center; align-items: center; list-style: none; gap: 40px; margin: 0; padding: 0; }
+.nav-menu a { text-decoration: none; color: #444; font-weight: 600; font-size: 1rem; padding: 8px 16px; border-radius: 20px; transition: all .3s ease; white-space: nowrap; }
 .nav-menu a:hover { color: #ff9500; background: rgba(0,0,0,.03); }
-.nav-icons { position: relative; display: flex; align-items: center; gap: 14px; white-space: nowrap; }
+.nav-icons { position: relative; display: flex; align-items: center; gap: 16px; white-space: nowrap; }
 .nav-icons .nav-icon { cursor: pointer; font-size: 1.5rem; display: inline-flex; align-items: center; justify-content: center; transition: transform .3s, color .3s; color: #333; text-decoration: none; border: 0; background: transparent; padding: 0; }
 .nav-icons .nav-icon:hover { transform: scale(1.1); color: #ff9500; }
 .nav-login-btn-link { text-decoration: none; margin-left: 10px; }
