@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { getCurrentUser, legacyBase } from '../api'
+import MerchantBackground from '../components/MerchantBackground.vue'
 import MerchantSidebar from '../components/MerchantSidebar.vue'
 import PrimegoHeader from '../components/PrimegoHeader.vue'
 
@@ -47,9 +48,7 @@ onMounted(loadDashboard)
 <template>
   <div class="merchant-page">
     <PrimegoHeader :current-user="currentUser" :merchant-route="true" />
-    <div class="background-blob blob-red"></div>
-    <div class="background-blob blob-yellow"></div>
-    <div class="background-blob blob-orange"></div>
+    <MerchantBackground />
     <div class="layout-container">
       <MerchantSidebar active="dashboard" />
       <main class="main-content">
@@ -113,11 +112,7 @@ onMounted(loadDashboard)
 </template>
 
 <style scoped>
-.merchant-page { position: relative; min-height: 100vh; padding-top: 90px; background: linear-gradient(to bottom,#f0f2f5,#e0e5ec); color: #2d3436; --primary: #ff9500; --primary-hover: #e68600; --secondary: #ff5e55; --text-dark: #2d3436; --text-gray: #636e72; --glass-bg: rgba(255,255,255,.95); --card-radius: 16px; --card-shadow: 0 10px 30px rgba(0,0,0,.05); --border-color: #dfe6e9; }
-.background-blob { position: fixed; z-index: 0; border-radius: 50%; pointer-events: none; filter: drop-shadow(30px 40px 50px rgba(0,0,0,.2)); }
-.blob-red { top: -200px; left: -200px; width: 750px; height: 650px; background: white; }
-.blob-yellow { top: -250px; right: -100px; width: 900px; height: 700px; transform: rotate(30deg); background: linear-gradient(145deg,#ffdb4d,#e6b800); box-shadow: inset 10px 10px 40px rgba(255,255,255,.7),inset -30px -30px 60px rgba(184,134,11,.3); }
-.blob-orange { bottom: -650px; left: -600px; width: 1800px; height: 950px; background: white; }
+.merchant-page { position: relative; min-height: 100vh; overflow-x: hidden; padding-top: 90px; background: linear-gradient(to bottom,#f0f2f5,#e0e5ec); color: #2d3436; --primary: #ff9500; --primary-hover: #e68600; --secondary: #ff5e55; --text-dark: #2d3436; --text-gray: #636e72; --glass-bg: rgba(255,255,255,.95); --card-radius: 16px; --card-shadow: 0 10px 30px rgba(0,0,0,.05); --border-color: #dfe6e9; }
 .layout-container { position: relative; z-index: 1; display: grid; max-width: 1400px; grid-template-columns: 240px minmax(0,1fr); align-items: start; gap: 30px; margin: 30px auto; padding: 0 20px; }
 .main-content { display: flex; min-width: 0; flex-direction: column; gap: 25px; }
 .dashboard-state,.dashboard-error { padding: 28px; border-radius: 16px; background: rgba(255,255,255,.9); color: #636e72; text-align: center; }
