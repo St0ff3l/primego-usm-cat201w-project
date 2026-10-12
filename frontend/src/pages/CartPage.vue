@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { cartAction, getCategories, getCurrentUser, legacyPageUrl, productImageUrl } from '../api'
+import { cartAction, getCategories, getCurrentUser, productImageUrl } from '../api'
 import PrimegoHeader from '../components/PrimegoHeader.vue'
 
 const items = ref([])
@@ -78,18 +78,9 @@ function checkout() {
     window.alert('Please select at least one item to checkout.')
     return
   }
-  const form = document.createElement('form')
-  form.method = 'post'
-  form.action = legacyPageUrl('/customer/order/order_confirmation.jsp')
-  selectedProductIds.value.forEach((id) => {
-    const input = document.createElement('input')
-    input.type = 'hidden'
-    input.name = 'selectedProductIds'
-    input.value = id
-    form.appendChild(input)
-  })
-  document.body.appendChild(form)
-  form.submit()
+  const query = new URLSearchParams()
+  selectedProductIds.value.forEach((id) => query.append('selectedProductIds', id))
+  window.location.href = `/customer/order/order_confirmation.jsp?${query.toString()}`
 }
 
 function imageFailed(event) {

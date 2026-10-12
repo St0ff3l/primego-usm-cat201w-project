@@ -1,8 +1,10 @@
 <script setup>
 import HomePage from './pages/HomePage.vue'
 import CartPage from './pages/CartPage.vue'
+import CheckoutPage from './pages/CheckoutPage.vue'
 import LegacyFallbackPage from './pages/LegacyFallbackPage.vue'
 import LoginPage from './pages/LoginPage.vue'
+import PaymentResultPage from './pages/PaymentResultPage.vue'
 import ProductDetailPage from './pages/ProductDetailPage.vue'
 import SearchResultPage from './pages/SearchResultPage.vue'
 import SignupPage from './pages/SignupPage.vue'
@@ -17,6 +19,9 @@ const routes = {
   '/customer/product/search_result.jsp': SearchResultPage,
   '/customer/product/product_detail.jsp': ProductDetailPage,
   '/customer/order/cart.jsp': CartPage,
+  '/customer/order/order_confirmation.jsp': CheckoutPage,
+  '/customer/order/payment_success.jsp': PaymentResultPage,
+  '/customer/order/payment_failed.jsp': PaymentResultPage,
 }
 
 const currentPage = routes[window.location.pathname] || LegacyFallbackPage
