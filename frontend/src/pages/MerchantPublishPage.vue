@@ -4,38 +4,13 @@ import { getCategories, getCurrentUser, legacyBase } from '../api'
 import MerchantBackground from '../components/MerchantBackground.vue'
 import MerchantSidebar from '../components/MerchantSidebar.vue'
 import PrimegoHeader from '../components/PrimegoHeader.vue'
+import { createImagesUploader } from '../utils/imagesUploader'
 
 const currentUser = ref(null)
 const categories = ref([])
 const loading = ref(true)
 const error = ref('')
 const categoryId = ref('')
-
-function loadUploaderAssets() {
-  const stylesheet = document.createElement('link')
-  stylesheet.rel = 'stylesheet'
-  stylesheet.href = `${legacyBase}/assets/css/images_uploader.css`
-  const stylesLoaded = new Promise((resolve, reject) => {
-    stylesheet.onload = resolve
-    stylesheet.onerror = () => reject(new Error('Unable to load the product image uploader.'))
-  })
-  document.head.append(stylesheet)
-
-  const script = document.createElement('script')
-  script.src = `${legacyBase}/assets/js/images_uploader.js?v=${Date.now()}`
-  const scriptLoaded = new Promise((resolve, reject) => {
-    script.onload = resolve
-    script.onerror = () => reject(new Error('Unable to load the product image uploader.'))
-  })
-  document.head.append(script)
-
-  return Promise.all([stylesLoaded, scriptLoaded]).then(() => {
-    new window.ImagesUploader('#photo-upload-container', {
-      inputName: 'productImage',
-      placeholderImg: `${legacyBase}/assets/images/product-placeholder.svg`,
-    })
-  })
-}
 
 async function loadPage() {
   try {
@@ -46,7 +21,13 @@ async function loadPage() {
     }
     currentUser.value = user
 
-    const [loadedCategories] = await Promise.all([getCategories(), loadUploaderAssets()])
+    const [loadedCategories] = await Promise.all([
+      getCategories(),
+      createImagesUploader('#photo-upload-container', {
+        inputName: 'productImage',
+        placeholderImg: `${legacyBase}/assets/images/product-placeholder.svg`,
+      }),
+    ])
     categories.value = loadedCategories
     document.title = 'Publish Product - Seller Center'
   } catch (loadError) {
@@ -135,7 +116,7 @@ onMounted(loadPage)
 
 <style scoped>
 .merchant-publish-page { position: relative; min-height: 100vh; overflow-x: hidden; padding-top: 90px; background: linear-gradient(to bottom,#f0f2f5,#e0e5ec); color: #2d3436; --primary: #ff9500; --primary-hover: #e68600; --secondary: #ff5e55; --text-dark: #2d3436; --text-gray: #636e72; --card-radius: 16px; --pg-glass-bg-055: rgba(255,255,255,.55); --pg-glass-border: rgba(255,255,255,.9); --pg-glass-shadow: 0 10px 30px rgba(0,0,0,.1),0 4px 6px rgba(0,0,0,.05); --pg-glass-blur: 25px; --iu-primary: var(--primary); --iu-bg: rgba(255,255,255,.4); --iu-border: #dfe6e9; }
-.merchant-publish-page,.merchant-publish-page * { box-sizing: border-box; font-family: 'Poppins',sans-serif; }
+.merchant-publish-page,.merchant-publish-page * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins',sans-serif; }
 .merchant-publish-page i[class^='ri-'],.merchant-publish-page i[class*=' ri-'] { font-family: 'remixicon' !important; font-style: normal; -webkit-font-smoothing: antialiased; line-height: 1; vertical-align: middle; display: inline-block; }
 .layout-container { position: relative; z-index: 1; display: grid; max-width: 1400px; grid-template-columns: 240px 1fr; align-items: start; gap: 30px; margin: 25px auto; padding: 0 20px; }
 .form-card { width: 100%; padding: 30px 40px; border: 1px solid var(--pg-glass-border); border-radius: var(--card-radius); background: var(--pg-glass-bg-055); box-shadow: var(--pg-glass-shadow); backdrop-filter: blur(var(--pg-glass-blur)); -webkit-backdrop-filter: blur(var(--pg-glass-blur)); opacity: 0; transform: translateY(22px); animation: pgFadeInUp .6s cubic-bezier(.2,.8,.2,1) forwards; }

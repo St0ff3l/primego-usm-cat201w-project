@@ -5,6 +5,7 @@ import CheckoutPage from './pages/CheckoutPage.vue'
 import LegacyFallbackPage from './pages/LegacyFallbackPage.vue'
 import LoginPage from './pages/LoginPage.vue'
 import MerchantDashboardPage from './pages/MerchantDashboardPage.vue'
+import MerchantProductEditPage from './pages/MerchantProductEditPage.vue'
 import MerchantPublishPage from './pages/MerchantPublishPage.vue'
 import MerchantProductsPage from './pages/MerchantProductsPage.vue'
 import OrderHistoryPage from './pages/OrderHistoryPage.vue'
@@ -33,6 +34,7 @@ const routes = {
   '/customer/orders': OrderHistoryPage,
   '/profile': ProfilePage,
   '/merchant/merchant_dashboard.jsp': MerchantDashboardPage,
+  '/merchant/product/product_edit.jsp': MerchantProductEditPage,
   '/merchant/product/publish.jsp': MerchantPublishPage,
   '/merchant/product/product_management.jsp': MerchantProductsPage,
   '/public/wallet/wallet.jsp': WalletPage,

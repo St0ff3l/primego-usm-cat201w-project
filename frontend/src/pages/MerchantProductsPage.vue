@@ -150,7 +150,7 @@ onMounted(loadProducts)
 
 <style scoped>
 .merchant-products-page { position: relative; min-height: 100vh; overflow-x: hidden; padding-top: 90px; background: linear-gradient(to bottom,#f0f2f5,#e0e5ec); color: #2d3436; --primary: #ff9500; --primary-hover: #e68600; --secondary: #ff5e55; --text-dark: #2d3436; --text-gray: #636e72; --glass-bg: rgba(255,255,255,.95); --card-radius: 16px; --card-shadow: 0 10px 30px rgba(0,0,0,.05); --border-color: #dfe6e9; }
-.merchant-products-page,.merchant-products-page * { box-sizing: border-box; font-family: 'Poppins',sans-serif; }
+.merchant-products-page,.merchant-products-page * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins',sans-serif; }
 .merchant-products-page i[class^='ri-'],.merchant-products-page i[class*=' ri-'] { font-family: 'remixicon' !important; font-style: normal; -webkit-font-smoothing: antialiased; line-height: 1; vertical-align: middle; display: inline-block; }
 .layout-container { position: relative; z-index: 1; display: grid; max-width: 1400px; grid-template-columns: 240px minmax(0,1fr); align-items: start; gap: 30px; margin: 30px auto; padding: 0 20px; }
 .main-content { display: flex; min-width: 0; flex-direction: column; gap: 25px; }

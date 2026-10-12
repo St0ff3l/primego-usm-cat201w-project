@@ -68,6 +68,10 @@ public class ProductActionServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/merchant/product/product_management.jsp?error=notfound");
                 return;
             }
+            if (!oldProduct.belongsToMerchant(user.getId())) {
+                response.sendRedirect(request.getContextPath() + "/merchant/product/product_management.jsp?error=unauthorized");
+                return;
+            }
 
             String name = request.getParameter("productName");
             int categoryId = Integer.parseInt(request.getParameter("categoryId"));

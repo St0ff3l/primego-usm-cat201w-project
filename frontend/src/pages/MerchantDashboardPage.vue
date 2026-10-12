@@ -113,6 +113,7 @@ onMounted(loadDashboard)
 
 <style scoped>
 .merchant-page { position: relative; min-height: 100vh; overflow-x: hidden; padding-top: 90px; background: linear-gradient(to bottom,#f0f2f5,#e0e5ec); color: #2d3436; --primary: #ff9500; --primary-hover: #e68600; --secondary: #ff5e55; --text-dark: #2d3436; --text-gray: #636e72; --glass-bg: rgba(255,255,255,.95); --card-radius: 16px; --card-shadow: 0 10px 30px rgba(0,0,0,.05); --border-color: #dfe6e9; }
+.merchant-page,.merchant-page * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins',sans-serif; }
 .layout-container { position: relative; z-index: 1; display: grid; max-width: 1400px; grid-template-columns: 240px minmax(0,1fr); align-items: start; gap: 30px; margin: 30px auto; padding: 0 20px; }
 .main-content { display: flex; min-width: 0; flex-direction: column; gap: 25px; }
 .dashboard-state,.dashboard-error { padding: 28px; border-radius: 16px; background: rgba(255,255,255,.9); color: #636e72; text-align: center; }
