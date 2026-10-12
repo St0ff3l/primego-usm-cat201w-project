@@ -6,6 +6,7 @@ import LegacyFallbackPage from './pages/LegacyFallbackPage.vue'
 import LoginPage from './pages/LoginPage.vue'
 import MerchantDashboardPage from './pages/MerchantDashboardPage.vue'
 import MerchantProductEditPage from './pages/MerchantProductEditPage.vue'
+import MerchantProfilePage from './pages/MerchantProfilePage.vue'
 import MerchantPublishPage from './pages/MerchantPublishPage.vue'
 import MerchantProductsPage from './pages/MerchantProductsPage.vue'
 import OrderHistoryPage from './pages/OrderHistoryPage.vue'
@@ -35,6 +36,7 @@ const routes = {
   '/profile': ProfilePage,
   '/merchant/merchant_dashboard.jsp': MerchantDashboardPage,
   '/merchant/product/product_edit.jsp': MerchantProductEditPage,
+  '/merchant/user/merchant_profile.jsp': MerchantProfilePage,
   '/merchant/product/publish.jsp': MerchantPublishPage,
   '/merchant/product/product_management.jsp': MerchantProductsPage,
   '/public/wallet/wallet.jsp': WalletPage,
