@@ -6,6 +6,7 @@ import AdminProductReviewDetailPage from './pages/AdminProductReviewDetailPage.v
 import AdminProductReviewListPage from './pages/AdminProductReviewListPage.vue'
 import AdminDashboardPage from './pages/AdminDashboardPage.vue'
 import AdminMerchantCreatePage from './pages/AdminMerchantCreatePage.vue'
+import AdminWalletApprovalPage from './pages/AdminWalletApprovalPage.vue'
 import LegacyFallbackPage from './pages/LegacyFallbackPage.vue'
 import LoginPage from './pages/LoginPage.vue'
 import MerchantDashboardPage from './pages/MerchantDashboardPage.vue'
@@ -35,6 +36,7 @@ const routes = {
   '/admin/product/review': AdminProductReviewDetailPage,
   '/admin/dashboard': AdminDashboardPage,
   '/admin/merchant/create': AdminMerchantCreatePage,
+  '/admin/wallet/admin_approval.jsp': AdminWalletApprovalPage,
   '/register': SignupPage,
   '/customer/product/search_result.jsp': SearchResultPage,
   '/customer/product/product_detail.jsp': ProductDetailPage,

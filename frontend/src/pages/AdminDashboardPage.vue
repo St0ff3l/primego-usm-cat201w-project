@@ -251,7 +251,7 @@ onBeforeUnmount(() => {
         <span>{{ tab.label }}</span>
       </button>
       <a class="nav-item" href="/admin/product/review/list"><span>Product Review</span></a>
-      <a class="nav-item" :href="legacyPageUrl('/admin/wallet/admin_approval.jsp')"><span>Funds Approval</span></a>
+      <a class="nav-item" href="/admin/wallet/admin_approval.jsp"><span>Funds Approval</span></a>
       <a class="nav-item" href="/admin/merchant/create"><span>Merchant Create</span></a>
 
       <div class="sidebar-footer">
