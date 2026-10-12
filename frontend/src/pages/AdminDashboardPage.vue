@@ -85,7 +85,7 @@ async function drawCharts() {
     await nextTick()
     trafficChart?.destroy()
     userChart?.destroy()
-    trafficChart = new Chart(document.getElementById('trafficChart'), {
+    trafficChart = new Chart(document.getElementById('trafficChart').getContext('2d'), {
       type: 'line',
       data: {
         labels: dashboard.value.visits.map((visit) => visit.label),
@@ -105,7 +105,7 @@ async function drawCharts() {
         scales: { y: { beginAtZero: true } },
       },
     })
-    userChart = new Chart(document.getElementById('userChart'), {
+    userChart = new Chart(document.getElementById('userChart').getContext('2d'), {
       type: 'doughnut',
       data: {
         labels: ['Customers', 'Merchants', 'Admins'],
@@ -148,6 +148,7 @@ async function loadDashboard() {
     department.value = result.data.adminProfile?.department || ''
     globalMessage.value = result.data.globalMessage || ''
     document.title = 'Admin Dashboard - PrimeGo'
+    loading.value = false
     await drawCharts()
   } catch (loadError) {
     error.value = loadError.message || 'Unable to load the admin dashboard.'
@@ -251,7 +252,7 @@ onBeforeUnmount(() => {
       </button>
       <a class="nav-item" href="/admin/product/review/list"><span>Product Review</span></a>
       <a class="nav-item" :href="legacyPageUrl('/admin/wallet/admin_approval.jsp')"><span>Funds Approval</span></a>
-      <a class="nav-item" :href="legacyPageUrl('/admin/merchant/create')"><span>Merchant Create</span></a>
+      <a class="nav-item" href="/admin/merchant/create"><span>Merchant Create</span></a>
 
       <div class="sidebar-footer">
         <a class="btn-logout back-home" :href="legacyPageUrl('/index.jsp')">Back to Home</a>
