@@ -6,9 +6,11 @@ import LegacyFallbackPage from './pages/LegacyFallbackPage.vue'
 import LoginPage from './pages/LoginPage.vue'
 import MerchantDashboardPage from './pages/MerchantDashboardPage.vue'
 import MerchantProductEditPage from './pages/MerchantProductEditPage.vue'
+import MerchantOrdersPage from './pages/MerchantOrdersPage.vue'
 import MerchantProfilePage from './pages/MerchantProfilePage.vue'
 import MerchantPublishPage from './pages/MerchantPublishPage.vue'
 import MerchantProductsPage from './pages/MerchantProductsPage.vue'
+import MerchantReturnAddressPage from './pages/MerchantReturnAddressPage.vue'
 import OrderHistoryPage from './pages/OrderHistoryPage.vue'
 import PaymentResultPage from './pages/PaymentResultPage.vue'
 import ProfilePage from './pages/ProfilePage.vue'
@@ -39,12 +41,16 @@ const routes = {
   '/merchant/user/merchant_profile.jsp': MerchantProfilePage,
   '/merchant/product/publish.jsp': MerchantPublishPage,
   '/merchant/product/product_management.jsp': MerchantProductsPage,
+  '/merchant/order/order_management': MerchantOrdersPage,
   '/public/wallet/wallet.jsp': WalletPage,
   '/public/wallet/topup.jsp': TopUpPage,
   '/public/wallet/withdraw.jsp': WithdrawPage,
 }
 
-const currentPage = routes[window.location.pathname] || LegacyFallbackPage
+const currentPage = window.location.pathname === '/merchant/order/order_management'
+  && new URLSearchParams(window.location.search).get('action') === 'toReturnAddress'
+  ? MerchantReturnAddressPage
+  : routes[window.location.pathname] || LegacyFallbackPage
 </script>
 
 <template>
