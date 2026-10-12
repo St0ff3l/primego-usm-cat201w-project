@@ -6,6 +6,7 @@ import LegacyFallbackPage from './pages/LegacyFallbackPage.vue'
 import LoginPage from './pages/LoginPage.vue'
 import OrderHistoryPage from './pages/OrderHistoryPage.vue'
 import PaymentResultPage from './pages/PaymentResultPage.vue'
+import ProfilePage from './pages/ProfilePage.vue'
 import ProductDetailPage from './pages/ProductDetailPage.vue'
 import SearchResultPage from './pages/SearchResultPage.vue'
 import SignupPage from './pages/SignupPage.vue'
@@ -24,6 +25,7 @@ const routes = {
   '/customer/order/payment_success.jsp': PaymentResultPage,
   '/customer/order/payment_failed.jsp': PaymentResultPage,
   '/customer/orders': OrderHistoryPage,
+  '/profile': ProfilePage,
 }
 
 const currentPage = routes[window.location.pathname] || LegacyFallbackPage

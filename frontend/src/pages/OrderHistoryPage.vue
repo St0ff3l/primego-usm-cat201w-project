@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { legacyBase, legacyPageUrl, productImageUrl } from '../api'
+import { legacyBase, productImageUrl } from '../api'
+import AccountSidebar from '../components/AccountSidebar.vue'
 
 const statusOptions = [
   ['ALL', 'All'],
@@ -147,20 +148,7 @@ onMounted(loadOrders)
     <div class="background-blob blob-yellow"></div>
     <div class="background-blob blob-orange"></div>
 
-    <aside class="sidebar">
-      <h2>My Account</h2>
-      <nav class="sidebar-nav" aria-label="My account">
-        <a :href="legacyPageUrl('/profile')" class="nav-item"><i class="ri-user-line"></i><span>Profile Info</span></a>
-        <a href="/customer/orders?status=ALL" class="nav-item active"><i class="ri-shopping-bag-3-line"></i><span>My Orders</span></a>
-        <a :href="legacyPageUrl('/profile?tab=addresses')" class="nav-item"><i class="ri-map-pin-line"></i><span>Addresses</span></a>
-        <a :href="legacyPageUrl('/public/wallet/wallet.jsp')" class="nav-item"><i class="ri-wallet-line"></i><span>Wallet</span></a>
-        <a :href="legacyPageUrl('/profile?tab=settings')" class="nav-item"><i class="ri-settings-3-line"></i><span>Settings</span></a>
-      </nav>
-      <div class="sidebar-footer">
-        <a href="/index.jsp" class="btn-logout home-link"><i class="ri-home-4-line"></i> Back to Home</a>
-        <a :href="legacyPageUrl('/logout')" class="btn-logout"><i class="ri-logout-box-line"></i> Logout</a>
-      </div>
-    </aside>
+    <AccountSidebar active="orders" />
 
     <main class="main-content">
       <header class="header-section"><h1>Order History</h1></header>
@@ -324,15 +312,6 @@ onMounted(loadOrders)
 .blob-red { width: 750px; height: 650px; top: -200px; left: -200px; transform: rotate(-10deg); }
 .blob-yellow { width: 900px; height: 700px; top: -250px; right: -100px; transform: rotate(30deg); }
 .blob-orange { width: 1800px; height: 950px; bottom: -650px; left: -600px; transform: rotate(-10deg); background: linear-gradient(145deg,#ffad33,#e68a00); box-shadow: inset 15px 15px 50px rgba(255,255,255,.5),inset -40px -40px 80px rgba(160,82,45,.3); }
-.sidebar { position: fixed; z-index: 100; top: 0; bottom: 0; left: 0; display: flex; width: 250px; flex-direction: column; padding: 30px 20px; border-right: 1px solid rgba(255,255,255,.6); background: rgba(255,255,255,.8); backdrop-filter: blur(20px); }
-.sidebar h2 { margin: 0 0 40px; color: #e68a00; font-size: 1.5rem; text-align: center; }
-.sidebar-nav { display: flex; flex-direction: column; gap: 10px; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 15px 20px; border-radius: 15px; color: #555; font-weight: 600; text-decoration: none; transition: .2s; }
-.nav-item:hover,.nav-item.active { background: linear-gradient(45deg,#ff9500,#ffcc00); color: white; box-shadow: 0 5px 15px rgba(255,149,0,.3); }
-.sidebar-footer { display: grid; gap: 10px; margin-top: auto; }
-.btn-logout { display: block; padding: 12px; border-radius: 15px; background: #333; color: white; text-align: center; text-decoration: none; transition: .2s; }
-.btn-logout:hover { background: #555; }
-.home-link { background: #555; }
 .main-content { width: calc(100% - 250px); min-width: 0; margin-left: 250px; flex: 1; padding: 40px; }
 .header-section { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
 .header-section h1 { display: inline-block; margin: 0; padding: 10px 30px; border: 1px solid rgba(255,255,255,.5); border-radius: 50px; background: rgba(255,255,255,.6); color: #e68a00; font-size: 2.2rem; box-shadow: 0 4px 15px rgba(0,0,0,.05); backdrop-filter: blur(10px); }
@@ -424,6 +403,6 @@ onMounted(loadOrders)
 .confirm-actions button { padding: 10px 20px; border: 0; border-radius: 50px; cursor: pointer; font-weight: 600; }
 .confirm-cancel { background: #e0e0e0; color: #333; }
 .confirm-submit:disabled,.confirm-cancel:disabled { opacity: .6; cursor: wait; }
-@media (max-width: 900px) { .sidebar { width: 210px; padding: 25px 14px; } .main-content { width: calc(100% - 210px); margin-left: 210px; padding: 28px; } .order-footer { align-items: stretch; flex-direction: column; gap: 18px; } .shipping-copy { max-width: none; } .order-total-actions { width: 100%; max-width: none; min-width: 0; } }
-@media (max-width: 680px) { .orders-page { display: block; } .sidebar { position: relative; width: 100%; height: auto; padding: 14px; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.6); } .sidebar h2 { margin: 0 0 10px; font-size: 1.2rem; } .sidebar-nav { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; } .nav-item { padding: 10px; border-radius: 10px; font-size: .85rem; } .sidebar-footer { grid-template-columns: repeat(2,minmax(0,1fr)); margin-top: 10px; } .btn-logout { padding: 10px 6px; border-radius: 10px; font-size: .85rem; } .main-content { width: 100%; margin: 0; padding: 18px 14px 30px; } .header-section { margin-bottom: 18px; } .header-section h1 { padding: 8px 20px; font-size: 1.55rem; } .order-tab { padding: 8px 14px; font-size: .82rem; } .glass-panel { padding: 16px; } .order-header { flex-direction: column; gap: 10px; } .order-status-area { align-items: flex-start; text-align: left; } .order-item { gap: 10px; padding: 8px 4px; } .order-item img { width: 48px; height: 48px; flex-basis: 48px; } .item-copy strong { font-size: .88rem; } .item-subtotal { font-size: .85rem; } .tracking-input-group { flex-direction: column; } .btn-ship-action { min-height: 40px; } }
+@media (max-width: 900px) { .main-content { width: calc(100% - 210px); margin-left: 210px; padding: 28px; } .order-footer { align-items: stretch; flex-direction: column; gap: 18px; } .shipping-copy { max-width: none; } .order-total-actions { width: 100%; max-width: none; min-width: 0; } }
+@media (max-width: 680px) { .orders-page { display: block; } .main-content { width: 100%; margin: 0; padding: 18px 14px 30px; } .header-section { margin-bottom: 18px; } .header-section h1 { padding: 8px 20px; font-size: 1.55rem; } .order-tab { padding: 8px 14px; font-size: .82rem; } .glass-panel { padding: 16px; } .order-header { flex-direction: column; gap: 10px; } .order-status-area { align-items: flex-start; text-align: left; } .order-item { gap: 10px; padding: 8px 4px; } .order-item img { width: 48px; height: 48px; flex-basis: 48px; } .item-copy strong { font-size: .88rem; } .item-subtotal { font-size: .85rem; } .tracking-input-group { flex-direction: column; } .btn-ship-action { min-height: 40px; } }
 </style>
