@@ -320,3 +320,5 @@ class ImagesUploader {
         this.updateCapacityUI();
     }
 }
+
+window.ImagesUploader = ImagesUploader;
