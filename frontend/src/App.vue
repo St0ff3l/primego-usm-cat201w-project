@@ -60,13 +60,14 @@ const routes = {
   '/merchant/product/publish.jsp': MerchantPublishPage,
   '/merchant/product/product_management.jsp': MerchantProductsPage,
   '/merchant/order/order_management': MerchantOrdersPage,
+  '/merchant/order/order_management.jsp': MerchantOrdersPage,
   '/merchant/order/return_address.jsp': MerchantReturnAddressPage,
   '/public/wallet/wallet.jsp': WalletPage,
   '/public/wallet/topup.jsp': TopUpPage,
   '/public/wallet/withdraw.jsp': WithdrawPage,
 }
 
-const currentPage = window.location.pathname === '/merchant/order/order_management'
+const currentPage = ['/merchant/order/order_management', '/merchant/order/order_management.jsp'].includes(window.location.pathname)
   && new URLSearchParams(window.location.search).get('action') === 'toReturnAddress'
   ? MerchantReturnAddressPage
   : routes[window.location.pathname] || LegacyFallbackPage
