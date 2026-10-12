@@ -7,6 +7,7 @@ const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const envPath = resolve(rootDir, '.env')
 const frontendDir = resolve(rootDir, 'frontend')
 const backendDir = resolve(rootDir, 'backend')
+const legacyDbUtil = resolve(rootDir, 'src/main/java/com/primego/common/util/DBUtil.java')
 const appJar = resolve(backendDir, 'ruoyi-admin/target/ruoyi-admin.jar')
 const requiredVariables = [
   'PRIMEGO_DB_URL',
@@ -108,17 +109,23 @@ function buildBackend() {
 console.log('[dev] Starting the PrimeGo storefront at http://localhost:5173')
 startService('storefront', 'npm', ['run', 'dev'], frontendDir)
 
+if (existsSync(legacyDbUtil)) {
+  console.log('[dev] Starting the legacy Servlet backend at http://localhost:8081')
+  startService('legacy backend', 'mvn', ['-DskipTests', 'cargo:run'], rootDir)
+} else {
+  console.warn('[dev] Legacy backend not started: the ignored local DBUtil.java is missing.')
+}
+
 if (!backendConfigured) {
   if (envReadError) {
-    console.warn(`[dev] Could not read .env (${envReadError}); starting the storefront only.`)
+    console.warn(`[dev] Could not read .env (${envReadError}); skipping the separate RuoYi API.`)
   } else if (!hasEnvFile) {
-    console.log('[dev] No root .env found; starting the storefront only without a database connection.')
+    console.log('[dev] No root .env found; skipping the separate RuoYi API.')
   } else if (unconfiguredVariables.length > 0) {
-    console.log(`[dev] Server settings are incomplete (${unconfiguredVariables.join(', ')}); starting the storefront only.`)
+    console.log(`[dev] Server settings are incomplete (${unconfiguredVariables.join(', ')}); skipping the separate RuoYi API.`)
   } else {
-    console.log('[dev] No server settings found; starting the storefront only.')
+    console.log('[dev] No server settings found; skipping the separate RuoYi API.')
   }
-  console.log('[dev] Product and category data need the API. Add server settings to .env later to start both apps.')
 } else {
   const buildExitCode = await buildBackend()
   if (!shuttingDown) {
