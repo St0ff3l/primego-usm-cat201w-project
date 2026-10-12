@@ -61,8 +61,7 @@ public class WithdrawServlet extends HttpServlet {
                 if (jsonRequest) {
                     writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Enter a valid amount greater than zero.");
                 } else {
-                    request.setAttribute("error", "Please enter a valid amount greater than 0.");
-                    request.getRequestDispatcher("/public/wallet/withdraw.jsp").forward(request, response);
+                    writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Please enter a valid amount greater than 0.");
                 }
                 return;
             }
@@ -73,8 +72,7 @@ public class WithdrawServlet extends HttpServlet {
                 if (jsonRequest) {
                     writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Withdrawal amount exceeds your available balance.");
                 } else {
-                    request.setAttribute("error", "Insufficient balance.");
-                    request.getRequestDispatcher("/public/wallet/withdraw.jsp").forward(request, response);
+                    writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Withdrawal amount exceeds your available balance.");
                 }
                 return;
             }
@@ -132,8 +130,7 @@ public class WithdrawServlet extends HttpServlet {
                 if (jsonRequest) {
                     writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Please upload a valid QR code image.");
                 } else {
-                    request.setAttribute("error", "Please upload a valid QR code image.");
-                    request.getRequestDispatcher("/public/wallet/withdraw.jsp").forward(request, response);
+                    writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Please upload a valid QR code image.");
                 }
                 return;
             }
@@ -162,8 +159,7 @@ public class WithdrawServlet extends HttpServlet {
                 if (jsonRequest) {
                     writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to submit request.");
                 } else {
-                    request.setAttribute("error", "Failed to submit request.");
-                    request.getRequestDispatcher("/public/wallet/withdraw.jsp").forward(request, response);
+                    writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to submit request.");
                 }
             }
 
@@ -171,16 +167,14 @@ public class WithdrawServlet extends HttpServlet {
             if (jsonRequest) {
                 writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Enter a valid withdrawal amount.");
             } else {
-                request.setAttribute("error", "Please enter a valid amount greater than 0.");
-                request.getRequestDispatcher("/public/wallet/withdraw.jsp").forward(request, response);
+                writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Enter a valid withdrawal amount.");
             }
         } catch (Exception e) {
             e.printStackTrace();
             if (jsonRequest) {
                 writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unable to submit your withdrawal request.");
             } else {
-                request.setAttribute("error", "System error: " + e.getMessage());
-                request.getRequestDispatcher("/public/wallet/withdraw.jsp").forward(request, response);
+                writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unable to submit your withdrawal request.");
             }
         }
     }

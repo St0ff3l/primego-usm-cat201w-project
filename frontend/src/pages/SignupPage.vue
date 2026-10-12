@@ -58,7 +58,7 @@ async function submitSignup(event) {
         <button class="btn-signup" type="submit" :disabled="submitting">{{ submitting ? 'Creating account...' : 'Sign Up' }}</button>
       </form>
       <div class="login-prompt"><span>Already have an account? </span><a href="/public/login.jsp">Login</a></div>
-      <a href="/index.jsp" class="back-link">← Back to Home</a>
+      <a href="/" class="back-link">← Back to Home</a>
     </section>
   </main>
 </template>

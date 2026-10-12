@@ -64,7 +64,7 @@ public class AdminProductReviewListServlet extends HttpServlet {
 
         req.setAttribute("products", products);
 
-        req.getRequestDispatcher("/admin/product/review_list.jsp").forward(req, resp);
+        resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "The Vue app renders this page.");
     }
 
     static String productsJson(List<ProductDTO> products) {

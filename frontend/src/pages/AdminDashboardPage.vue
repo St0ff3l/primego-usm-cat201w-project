@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import { getCurrentUser, legacyBase, legacyPageUrl } from '../api'
+import { getCurrentUser, legacyBase } from '../api'
 import AdminBackground from '../components/AdminBackground.vue'
 
 const dashboard = ref({
@@ -130,7 +130,7 @@ async function loadDashboard() {
   try {
     const session = await getCurrentUser()
     if (!session.authenticated || session.role !== 'ADMIN') {
-      window.location.replace(legacyPageUrl('/login'))
+      window.location.replace('/public/login.jsp')
       return
     }
 
@@ -140,7 +140,7 @@ async function loadDashboard() {
     })
     const result = await response.json().catch(() => null)
     if (response.status === 401) {
-      window.location.replace(legacyPageUrl('/login'))
+      window.location.replace('/public/login.jsp')
       return
     }
     if (!response.ok || result?.code !== 200) throw new Error(result?.msg || 'Unable to load the admin dashboard.')
@@ -255,8 +255,8 @@ onBeforeUnmount(() => {
       <a class="nav-item" href="/admin/merchant/create"><span>Merchant Create</span></a>
 
       <div class="sidebar-footer">
-        <a class="btn-logout back-home" :href="legacyPageUrl('/index.jsp')">Back to Home</a>
-        <a class="btn-logout" :href="legacyPageUrl('/logout')">Logout</a>
+        <a class="btn-logout back-home" href="/">Back to Home</a>
+        <a class="btn-logout" href="/logout">Logout</a>
       </div>
     </aside>
 

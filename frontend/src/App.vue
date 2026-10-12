@@ -10,6 +10,7 @@ import AdminMerchantCreatePage from './pages/AdminMerchantCreatePage.vue'
 import AdminWalletApprovalPage from './pages/AdminWalletApprovalPage.vue'
 import LegacyFallbackPage from './pages/LegacyFallbackPage.vue'
 import LoginPage from './pages/LoginPage.vue'
+import LogoutPage from './pages/LogoutPage.vue'
 import MerchantDashboardPage from './pages/MerchantDashboardPage.vue'
 import MerchantProductEditPage from './pages/MerchantProductEditPage.vue'
 import MerchantOrdersPage from './pages/MerchantOrdersPage.vue'
@@ -32,6 +33,7 @@ const routes = {
   '/index.jsp': HomePage,
   '/public/login.jsp': LoginPage,
   '/login': LoginPage,
+  '/logout': LogoutPage,
   '/public/signup.jsp': SignupPage,
   '/admin/product/review/list': AdminProductReviewListPage,
   '/admin/product/review_list.jsp': AdminProductReviewListPage,

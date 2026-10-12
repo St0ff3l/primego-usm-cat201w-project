@@ -21,7 +21,7 @@ async function submitLogin(event) {
       error.value = result.error || 'Invalid username or password'
       return
     }
-    window.location.href = result.redirectUrl || '/index.jsp'
+    window.location.href = result.redirectUrl || '/'
   } catch {
     error.value = 'Unable to connect. Please try again.'
   } finally {
@@ -53,7 +53,7 @@ async function submitLogin(event) {
         <span>Don't have an account? </span>
         <a href="/public/signup.jsp">Sign Up</a>
       </div>
-      <a href="/index.jsp" class="back-link">← Back to Home</a>
+      <a href="/" class="back-link">← Back to Home</a>
     </section>
   </main>
 </template>

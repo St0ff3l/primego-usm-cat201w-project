@@ -33,7 +33,7 @@ function tryAgain() {
         <strong><i class="ri-information-fill"></i> Multiple Shipments</strong>
         <span>Since you purchased items from different merchants, your order has been split into separate shipments automatically.</span>
       </div>
-      <a href="/index.jsp" class="result-button success-button">Continue Shopping</a>
+      <a href="/" class="result-button success-button">Continue Shopping</a>
       <a href="/customer/orders?status=ALL" class="result-button outline-button">View My Orders</a>
     </section>
 
@@ -42,7 +42,7 @@ function tryAgain() {
       <h1>Payment Failed</h1>
       <p>{{ errorMessage }}</p>
       <button type="button" class="result-button failed-button" @click="tryAgain">Try Again</button>
-      <a href="/index.jsp" class="result-button outline-button">Back to Home</a>
+      <a href="/" class="result-button outline-button">Back to Home</a>
     </section>
   </main>
 </template>

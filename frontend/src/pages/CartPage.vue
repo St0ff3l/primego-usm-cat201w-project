@@ -150,7 +150,7 @@ onMounted(loadCart)
       <div v-else class="empty-cart">
         <h3>Your cart is empty</h3>
         <p>Go find some treasures!</p>
-        <a href="/index.jsp" class="btn-checkout start-shopping">Start Shopping</a>
+        <a href="/" class="btn-checkout start-shopping">Start Shopping</a>
       </div>
     </main>
 

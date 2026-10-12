@@ -17,7 +17,7 @@ async function checkAccess() {
       return
     }
     if (user.role !== 'CUSTOMER') {
-      window.location.replace(legacyPageUrl(window.location.pathname + window.location.search))
+      window.location.replace(user.role === 'ADMIN' ? '/admin/wallet/admin_approval.jsp' : '/public/wallet/wallet.jsp')
       return
     }
     document.title = 'Top Up Wallet - Manual QR'

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { getCurrentUser, legacyBase, legacyPageUrl } from '../api'
+import { getCurrentUser, legacyBase } from '../api'
 
 const role = ref('CUSTOMER')
 const balance = ref('0.00')
@@ -36,7 +36,7 @@ async function loadWallet() {
       return
     }
     if (!['CUSTOMER', 'MERCHANT'].includes(user.role)) {
-      window.location.replace(legacyPageUrl(window.location.pathname + window.location.search))
+      window.location.replace(user.role === 'ADMIN' ? '/admin/wallet/admin_approval.jsp' : '/public/login.jsp')
       return
     }
     role.value = user.role
@@ -72,7 +72,7 @@ onMounted(loadWallet)
 
     <main class="glass-panel">
       <div class="back-row">
-        <a :href="isMerchant ? legacyPageUrl('/merchant/merchant_dashboard.jsp') : '/profile'" class="back-btn" :title="isMerchant ? 'Back to Dashboard' : 'Back to Profile'" aria-label="Go back">
+        <a :href="isMerchant ? '/merchant/merchant_dashboard.jsp' : '/profile'" class="back-btn" :title="isMerchant ? 'Back to Dashboard' : 'Back to Profile'" aria-label="Go back">
           <i class="ri-arrow-left-line"></i><span class="back-text">{{ isMerchant ? 'Dashboard' : 'Back Profile' }}</span>
         </a>
       </div>

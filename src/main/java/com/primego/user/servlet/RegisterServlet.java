@@ -18,12 +18,9 @@ import java.io.IOException;
 public class RegisterServlet extends HttpServlet {
     private UserDAO userDAO = new UserDAO();
 
-    /**
-     * Renders the registration page.
-     */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.getRequestDispatcher("/public/signup.jsp").forward(req, resp);
+        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
 
     /**
@@ -33,6 +30,10 @@ public class RegisterServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         boolean jsonRequest = req.getHeader("Accept") != null && req.getHeader("Accept").contains("application/json");
+        if (!jsonRequest) {
+            resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "Submit registration through the Vue app.");
+            return;
+        }
         String username = req.getParameter("username");
         String email = req.getParameter("email");
         String confirmEmail = req.getParameter("confirmEmail");
@@ -41,23 +42,17 @@ public class RegisterServlet extends HttpServlet {
 
         // Server-side validation
         if (email == null || confirmEmail == null || !email.equals(confirmEmail)) {
-            if (jsonRequest) { writeJsonError(resp, "Emails do not match"); return; }
-            req.setAttribute("error", "Emails do not match");
-            req.getRequestDispatcher("/public/signup.jsp").forward(req, resp);
+            writeJsonError(resp, "Emails do not match");
             return;
         }
 
         if (password == null || confirmPassword == null || !password.equals(confirmPassword)) {
-            if (jsonRequest) { writeJsonError(resp, "Passwords do not match"); return; }
-            req.setAttribute("error", "Passwords do not match");
-            req.getRequestDispatcher("/public/signup.jsp").forward(req, resp);
+            writeJsonError(resp, "Passwords do not match");
             return;
         }
 
         if (userDAO.findByUsername(username) != null) {
-            if (jsonRequest) { writeJsonError(resp, "Username already exists"); return; }
-            req.setAttribute("error", "Username already exists");
-            req.getRequestDispatcher("/public/signup.jsp").forward(req, resp);
+            writeJsonError(resp, "Username already exists");
             return;
         }
 
@@ -65,20 +60,12 @@ public class RegisterServlet extends HttpServlet {
         User newUser = new User(username, password, Role.CUSTOMER);
         try {
             userDAO.createUser(newUser, email);
-            if (jsonRequest) {
-                resp.setContentType("application/json");
-                resp.setCharacterEncoding("UTF-8");
-                resp.getWriter().write("{\"redirectUrl\":\"" + req.getContextPath() + "/public/login.jsp\"}");
-                return;
-            }
-            // Redirect to login page with success message (optional: could pass via session
-            // or URL param)
-            resp.sendRedirect(req.getContextPath() + "/public/login.jsp");
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            resp.getWriter().write("{\"redirectUrl\":\"/public/login.jsp\"}");
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
-            if (jsonRequest) { writeJsonError(resp, "Registration failed: " + e.getMessage()); return; }
-            req.setAttribute("error", "Registration failed: " + e.getMessage());
-            req.getRequestDispatcher("/public/signup.jsp").forward(req, resp);
+            writeJsonError(resp, "Registration failed: " + e.getMessage());
         }
     }
 

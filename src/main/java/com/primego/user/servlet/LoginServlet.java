@@ -19,12 +19,9 @@ import java.io.IOException;
 public class LoginServlet extends HttpServlet {
     private UserDAO userDAO = new UserDAO();
 
-    /**
-     * Serves the login page.
-     */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.getRequestDispatcher("/public/login.jsp").forward(req, resp);
+        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
 
     /**
@@ -35,6 +32,10 @@ public class LoginServlet extends HttpServlet {
         // 1. Set request encoding to prevent character encoding issues
         req.setCharacterEncoding("UTF-8");
         boolean jsonRequest = req.getHeader("Accept") != null && req.getHeader("Accept").contains("application/json");
+        if (!jsonRequest) {
+            resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "Submit credentials through the Vue app.");
+            return;
+        }
 
         String username = req.getParameter("username");
         String password = req.getParameter("password");
@@ -47,35 +48,18 @@ public class LoginServlet extends HttpServlet {
             HttpSession session = req.getSession();
             session.setAttribute("user", user);
 
-            if (jsonRequest) {
-                String redirectUrl = user.getRole() == Role.MERCHANT
-                    ? req.getContextPath() + "/merchant/merchant_dashboard.jsp"
-                    : req.getContextPath() + "/index.jsp";
-                resp.setContentType("application/json");
-                resp.setCharacterEncoding("UTF-8");
-                resp.getWriter().write("{\"redirectUrl\":\"" + redirectUrl + "\"}");
-                return;
-            }
-
-            // Redirect based on role
-            if (user.getRole() == Role.MERCHANT) {
-                resp.sendRedirect(req.getContextPath() + "/merchant/merchant_dashboard.jsp");
-            } else {
-                // Customer goes to index.jsp
-                resp.sendRedirect(req.getContextPath() + "/index.jsp");
-            }
+            String redirectUrl = user.getRole() == Role.MERCHANT
+                ? "/merchant/merchant_dashboard.jsp"
+                : "/";
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            resp.getWriter().write("{\"redirectUrl\":\"" + redirectUrl + "\"}");
 
         } else {
-            // 4. Login failed
-            if (jsonRequest) {
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.setContentType("application/json");
-                resp.setCharacterEncoding("UTF-8");
-                resp.getWriter().write("{\"error\":\"Invalid username or password\"}");
-                return;
-            }
-            req.setAttribute("error", "Invalid username or password");
-            req.getRequestDispatcher("/public/login.jsp").forward(req, resp);
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            resp.getWriter().write("{\"error\":\"Invalid username or password\"}");
         }
     }
 }

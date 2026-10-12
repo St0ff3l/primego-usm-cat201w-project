@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref } from 'vue'
-import { getCurrentUser, legacyBase, legacyPageUrl } from '../api'
+import { getCurrentUser, legacyBase } from '../api'
 import AccountSidebar from '../components/AccountSidebar.vue'
 
 const activeTab = ref(new URLSearchParams(window.location.search).get('tab') || 'profile')

@@ -53,8 +53,7 @@ public class TopUpServlet extends HttpServlet {
                 if (jsonRequest) {
                     writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Top-up amount must be at least RM 1.00.");
                 } else {
-                    request.setAttribute("error", "Please enter an amount of at least RM 1.00.");
-                    request.getRequestDispatcher("/public/wallet/topup.jsp").forward(request, response);
+                    writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Please enter an amount of at least RM 1.00.");
                 }
                 return;
             }
@@ -66,8 +65,7 @@ public class TopUpServlet extends HttpServlet {
                 if (jsonRequest) {
                     writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Please upload a valid receipt image.");
                 } else {
-                    request.setAttribute("error", "Please upload a valid receipt image.");
-                    request.getRequestDispatcher("/public/wallet/topup.jsp").forward(request, response);
+                    writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Please upload a valid receipt image.");
                 }
                 return;
             }
@@ -130,8 +128,7 @@ public class TopUpServlet extends HttpServlet {
                 if (jsonRequest) {
                     writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error. Please try again.");
                 } else {
-                    request.setAttribute("error", "Database error. Please try again.");
-                    request.getRequestDispatcher("/public/wallet/topup.jsp").forward(request, response);
+                    writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error. Please try again.");
                 }
             }
 
@@ -139,16 +136,14 @@ public class TopUpServlet extends HttpServlet {
             if (jsonRequest) {
                 writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Enter a valid top-up amount.");
             } else {
-                request.setAttribute("error", "Invalid amount format.");
-                request.getRequestDispatcher("/public/wallet/topup.jsp").forward(request, response);
+                writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid amount format.");
             }
         } catch (Exception e) {
             e.printStackTrace();
             if (jsonRequest) {
                 writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unable to submit your top-up request.");
             } else {
-                request.setAttribute("error", "An error occurred: " + e.getMessage());
-                request.getRequestDispatcher("/public/wallet/topup.jsp").forward(request, response);
+                writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unable to submit your top-up request.");
             }
         }
     }

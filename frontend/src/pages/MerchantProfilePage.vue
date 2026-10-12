@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { getCurrentUser, legacyBase, legacyPageUrl } from '../api'
+import { getCurrentUser, legacyBase } from '../api'
 import MerchantBackground from '../components/MerchantBackground.vue'
 
 const username = ref('')
@@ -59,7 +59,7 @@ onMounted(loadProfile)
         </template>
         <p v-else>No additional profile details found.</p>
       </div>
-      <a :href="legacyPageUrl('/logout')" class="btn-back">Logout</a>
+      <a href="/logout" class="btn-back">Logout</a>
     </div>
   </div>
 </template>

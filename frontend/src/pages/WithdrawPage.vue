@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { getCurrentUser, legacyBase, legacyPageUrl } from '../api'
+import { getCurrentUser, legacyBase } from '../api'
 import ReceiptUploader from '../components/ReceiptUploader.vue'
 
 const role = ref('CUSTOMER')
@@ -19,7 +19,7 @@ async function loadWallet() {
       return
     }
     if (!['CUSTOMER', 'MERCHANT'].includes(user.role)) {
-      window.location.replace(legacyPageUrl(window.location.pathname + window.location.search))
+      window.location.replace(user.role === 'ADMIN' ? '/admin/wallet/admin_approval.jsp' : '/public/login.jsp')
       return
     }
     role.value = user.role

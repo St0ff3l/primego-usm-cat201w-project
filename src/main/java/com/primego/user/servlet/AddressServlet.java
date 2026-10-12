@@ -40,11 +40,10 @@ public class AddressServlet extends HttpServlet {
         if ("list".equals(action)) {
             // Gson not available, skip JSON response for now or implement manual JSON if
             // needed
-            // For now, we rely on JSP rendering via ProfileServlet
+            // Address listing is provided by the profile API.
             resp.sendError(HttpServletResponse.SC_NOT_IMPLEMENTED, "JSON list not supported without Gson");
         } else {
-            // Default could be redirecting to list page or something, but we mainly use
-            // JSON via AJAX or JSP include
+            // JSON via AJAX.
             List<UserAddress> addresses = addressDAO.getAddressesByUserId(user.getId());
             req.setAttribute("addresses", addresses);
         }

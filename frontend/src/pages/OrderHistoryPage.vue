@@ -169,7 +169,7 @@ onMounted(loadOrders)
       <section v-else-if="!orders.length" class="glass-panel empty-orders">
         <i class="ri-shopping-cart-line empty-cart-icon"></i>
         <p>You haven't placed any orders yet.</p>
-        <a href="/index.jsp" class="btn-edit">Start Shopping</a>
+        <a href="/" class="btn-edit">Start Shopping</a>
       </section>
 
       <div v-else class="orders-list">

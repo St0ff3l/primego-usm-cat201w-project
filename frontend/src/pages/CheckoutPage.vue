@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, ref } from 'vue'
-import { getCategories, getCurrentUser, legacyBase, legacyPageUrl, productImageUrl } from '../api'
+import { getCategories, getCurrentUser, legacyBase, productImageUrl } from '../api'
 import PrimegoHeader from '../components/PrimegoHeader.vue'
 
 const checkout = ref(null)
@@ -208,14 +208,14 @@ onMounted(loadCheckout)
                 <div class="address-phone">{{ checkout.defaultAddress.phone }}</div>
                 <div class="address-detail">{{ checkout.defaultAddress.fullAddress }}</div>
               </article>
-              <a :href="legacyPageUrl('/profile?tab=addresses')" class="add-address">
+              <a href="/profile?tab=addresses" class="add-address">
                 <span aria-hidden="true">+</span>
                 <span>Add New Address</span>
               </a>
             </div>
             <div v-else class="missing-address">
               You don't have a default address. Please add one.
-              <a :href="legacyPageUrl('/profile?tab=addresses')">Add an address</a>
+              <a href="/profile?tab=addresses">Add an address</a>
             </div>
           </div>
         </section>
@@ -273,7 +273,7 @@ onMounted(loadCheckout)
         <div class="modal-icon"><i class="ri-error-warning-line"></i></div>
         <h2 id="no-pin-title">No PIN Set</h2>
         <p class="modal-copy">To protect your wallet, you must set a <strong>Payment PIN</strong> before purchasing.</p>
-        <a :href="legacyPageUrl('/profile?tab=settings&pinAction=true')" class="btn-modal-setup">Set PIN Now</a>
+        <a href="/profile?tab=settings&pinAction=true" class="btn-modal-setup">Set PIN Now</a>
         <button type="button" class="btn-dismiss" @click="noPinModalOpen = false">Cancel</button>
       </section>
     </div>

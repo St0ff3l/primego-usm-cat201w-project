@@ -1,7 +1,5 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue'
-import { legacyPageUrl } from '../api'
-
 defineProps({
   categories: { type: Array, default: () => [] },
   currentUser: { type: Object, default: null },
@@ -31,13 +29,13 @@ onUnmounted(() => window.removeEventListener('keydown', closeOnEscape))
 <template>
   <header :class="['home-header', { 'pg-header-merchant-minimal': merchantRoute }]">
     <div class="navbar">
-      <a href="/index.jsp" class="brand-link">
+      <a href="/" class="brand-link">
         <img src="/assets/images/logo.png" alt="PrimeGo Logo" class="brand-logo-img" width="40" height="40" />
         <span class="brand-text">PrimeGo</span>
       </a>
 
       <ul class="nav-menu">
-        <li><a href="/index.jsp">Home</a></li>
+        <li><a href="/">Home</a></li>
         <li class="nav-item-dropdown">
           <a href="#categories" class="dropdown-trigger">Categories ▾</a>
           <ul class="dropdown-menu">
@@ -53,7 +51,7 @@ onUnmounted(() => window.removeEventListener('keydown', closeOnEscape))
           <li v-if="currentUser.role === 'ADMIN'"><a href="/admin/dashboard">Dashboard</a></li>
           <li v-if="currentUser.role === 'MERCHANT'"><a href="/merchant/merchant_dashboard.jsp">Dashboard</a></li>
           <li><a href="/profile">Profile</a></li>
-          <li><a :href="legacyPageUrl('/logout')">Logout</a></li>
+          <li><a href="/logout">Logout</a></li>
         </template>
       </ul>
 

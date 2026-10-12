@@ -60,19 +60,15 @@ public class ProfileServlet extends HttpServlet {
                 // Removed: Order retrieval logic (Handle Order Filtering)
                 // Now handled by CustomerOrderServlet (/customer/orders)
 
-                if (jsonRequest) {
-                    writeProfileJson(req, resp, user, customerProfile, addresses);
-                } else {
-                    req.getRequestDispatcher("/customer/user/customer_profile.jsp").forward(req, resp);
-                }
+                if (jsonRequest) writeProfileJson(req, resp, user, customerProfile, addresses);
+                else resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "The Vue app renders this page.");
                 break;
             case MERCHANT:
                 if (jsonRequest) {
                     writeFailure(resp, HttpServletResponse.SC_FORBIDDEN, "Customer profile is not available for this account.");
                     return;
                 }
-                req.setAttribute("profile", profileDAO.getMerchantProfile(userId));
-                req.getRequestDispatcher("/merchant/user/merchant_profile.jsp").forward(req, resp);
+                resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "The Vue app renders this page.");
                 break;
             case ADMIN:
                 if (jsonRequest) {
@@ -82,8 +78,7 @@ public class ProfileServlet extends HttpServlet {
                     resp.getWriter().write(adminProfileJson(user, profileDAO.getAdminProfile(userId)));
                     return;
                 }
-                req.setAttribute("profile", profileDAO.getAdminProfile(userId));
-                req.getRequestDispatcher("/admin/user/admin_profile.jsp").forward(req, resp);
+                resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "The Vue app renders this page.");
                 break;
         }
     }
@@ -260,11 +255,8 @@ public class ProfileServlet extends HttpServlet {
         // Removed: confirmReceipt logic
         // Logic moved to CustomerOrderServlet
 
-        if (jsonRequest) {
-            writeProfileJson(req, resp, user);
-        } else {
-            doGet(req, resp); // Reload page
-        }
+        if (jsonRequest) writeProfileJson(req, resp, user);
+        else resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "The Vue app renders this page.");
     }
 
     private boolean isJsonRequest(HttpServletRequest req) {

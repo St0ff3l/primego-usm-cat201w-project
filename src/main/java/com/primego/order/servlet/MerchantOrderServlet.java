@@ -37,7 +37,7 @@ public class MerchantOrderServlet extends HttpServlet {
                     "Only merchants can view orders.");
                 return;
             }
-            resp.sendRedirect(req.getContextPath() + "/public/login.jsp");
+            resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
@@ -65,8 +65,7 @@ public class MerchantOrderServlet extends HttpServlet {
                 return;
             }
 
-            req.setAttribute("order", order);
-            req.getRequestDispatcher("/merchant/order/return_address.jsp").forward(req, resp);
+            resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "The Vue app renders this page.");
             return;
         }
 
@@ -76,8 +75,7 @@ public class MerchantOrderServlet extends HttpServlet {
             return;
         }
 
-        req.setAttribute("orders", orders);
-        req.getRequestDispatcher("/merchant/order/order_management.jsp").forward(req, resp);
+        resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "The Vue app renders this page.");
     }
 
     @Override
@@ -95,7 +93,7 @@ public class MerchantOrderServlet extends HttpServlet {
                     "Only merchants can update orders.");
                 return;
             }
-            resp.sendRedirect(req.getContextPath() + "/public/login.jsp");
+            resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 

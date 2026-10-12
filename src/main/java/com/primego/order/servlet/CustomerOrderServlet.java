@@ -33,7 +33,7 @@ public class CustomerOrderServlet extends HttpServlet {
                 writeFailure(resp, HttpServletResponse.SC_UNAUTHORIZED, "Please log in to view your orders.");
                 return;
             }
-            resp.sendRedirect(req.getContextPath() + "/public/login.jsp");
+            resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
@@ -53,16 +53,15 @@ public class CustomerOrderServlet extends HttpServlet {
 
                     // Security check: only allow viewing the current user's order, and only when COMPLETED.
                     if (order != null && order.getCustomerId() == userId && "COMPLETED".equals(order.getOrderStatus())) {
-                        req.setAttribute("refundOrder", order);
-                        req.getRequestDispatcher("/customer/order/refund_application.jsp").forward(req, resp);
-                        return; // Stop processing after forward.
+                        resp.sendRedirect(req.getContextPath() + "/customer/orders?status=RETURNS");
+                        return;
                     }
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
                 }
             }
             // Fallback to the orders list on invalid input or failed validation.
-            resp.sendRedirect(req.getContextPath() + "/customer/orders");
+            resp.sendRedirect(req.getContextPath() + "/customer/orders?status=RETURNS");
             return;
         }
 
@@ -88,8 +87,7 @@ public class CustomerOrderServlet extends HttpServlet {
             writeOrders(resp, session, orders, (String) req.getAttribute("currentStatus"));
             return;
         }
-        req.setAttribute("orderList", orders);
-        req.getRequestDispatcher("/customer/order/my_order.jsp").forward(req, resp);
+        resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "The Vue app renders this page.");
     }
 
     @Override
@@ -100,7 +98,7 @@ public class CustomerOrderServlet extends HttpServlet {
                 writeFailure(resp, HttpServletResponse.SC_UNAUTHORIZED, "Please log in to update your orders.");
                 return;
             }
-            resp.sendRedirect(req.getContextPath() + "/public/login.jsp");
+            resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 

@@ -1,6 +1,4 @@
 <script setup>
-import { legacyPageUrl } from '../api'
-
 defineProps({ active: { type: String, required: true } })
 </script>
 
@@ -25,8 +23,8 @@ defineProps({ active: { type: String, required: true } })
       </a>
     </nav>
     <div class="sidebar-footer">
-      <a href="/index.jsp" class="btn-logout home-link"><i class="ri-home-4-line"></i> Back to Home</a>
-      <a :href="legacyPageUrl('/logout')" class="btn-logout"><i class="ri-logout-box-line"></i> Logout</a>
+      <a href="/" class="btn-logout home-link"><i class="ri-home-4-line"></i> Back to Home</a>
+      <a href="/logout" class="btn-logout"><i class="ri-logout-box-line"></i> Logout</a>
     </div>
   </aside>
 </template>

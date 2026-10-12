@@ -1,11 +1,12 @@
 package com.primego.product.servlet;
 
+import com.primego.common.util.JsonUtil;
+import com.primego.common.util.PathUtil;
 import com.primego.product.dao.ProductDAO;
 import com.primego.product.dao.ProductImageDAO;
 import com.primego.product.model.Product;
 import com.primego.product.model.ProductImage;
 import com.primego.user.model.User;
-import com.primego.common.util.PathUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -35,12 +36,15 @@ public class ProductAddServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
 
         if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/public/login.jsp");
+            writeFailure(response, HttpServletResponse.SC_UNAUTHORIZED, "Please log in to publish products.");
+            return;
+        }
+        if (user.getRole() == null || !"MERCHANT".equals(user.getRole().toString())) {
+            writeFailure(response, HttpServletResponse.SC_FORBIDDEN, "Only merchants can publish products.");
             return;
         }
 
@@ -135,17 +139,31 @@ public class ProductAddServlet extends HttpServlet {
                     }
                 }
 
-                response.sendRedirect(request.getContextPath() + "/merchant/product/product_management.jsp?msg=pending_review");
+                writeSuccess(response, productId);
             } else {
-                request.setAttribute("errorMessage", "Failed to insert product record.");
-                request.getRequestDispatcher("/merchant/product/publish.jsp").forward(request, response);
+                writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to insert product record.");
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("errorMessage", "System Error: " + e.getMessage());
-            request.getRequestDispatcher("/merchant/product/publish.jsp").forward(request, response);
+            writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "System Error: " + e.getMessage());
         }
+    }
+
+    private void writeSuccess(HttpServletResponse response, int productId) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Cache-Control", "no-store");
+        response.getWriter().write("{\"code\":200,\"msg\":\"success\",\"data\":{\"productId\":" + productId
+                + ",\"redirectUrl\":\"/merchant/product/product_management.jsp?msg=pending_review\"}}");
+    }
+
+    private void writeFailure(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Cache-Control", "no-store");
+        response.getWriter().write("{\"code\":" + status + ",\"msg\":" + JsonUtil.quote(message) + "}");
     }
 
     private String getFileName(Part part) {

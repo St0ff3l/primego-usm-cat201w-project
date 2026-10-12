@@ -50,7 +50,7 @@ public class PlaceOrderServlet extends HttpServlet {
                 writeJsonFailure(response, HttpServletResponse.SC_UNAUTHORIZED, "Please log in to checkout.");
                 return;
             }
-            response.sendRedirect(request.getContextPath() + "/views/auth/login.jsp");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
         int userId = user.getId();
@@ -71,9 +71,7 @@ public class PlaceOrderServlet extends HttpServlet {
                 writeJsonFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid Payment PIN. Please try again.");
                 return;
             }
-            request.setAttribute("errorMessage", "Invalid Payment PIN. Please try again.");
-            request.setAttribute("showPinModal", true);
-            request.getRequestDispatcher("/customer/order/order_confirmation.jsp").forward(request, response);
+            response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "Submit checkout through the Vue app.");
             return;
         }
 
@@ -203,7 +201,7 @@ public class PlaceOrderServlet extends HttpServlet {
                 writeJsonFailure(response, HttpServletResponse.SC_BAD_REQUEST, "There are no items to checkout.");
                 return;
             }
-            response.sendRedirect(request.getContextPath() + "/index.jsp?error=EmptyOrder");
+            response.sendRedirect(request.getContextPath() + "/?error=EmptyOrder");
             return;
         }
 
@@ -303,8 +301,7 @@ public class PlaceOrderServlet extends HttpServlet {
                 return;
             }
             // Failure
-            request.setAttribute("errorMessage", "Order processing failed. Please try again.");
-            request.getRequestDispatcher("/customer/order/order_confirmation.jsp").forward(request, response);
+            response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "Submit checkout through the Vue app.");
         }
     }
 

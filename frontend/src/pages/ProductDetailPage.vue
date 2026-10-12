@@ -59,12 +59,12 @@ function buyNow() {
 
 async function loadProduct() {
   if (!productId) {
-    window.location.replace('/index.jsp')
+    window.location.replace('/')
     return
   }
   const results = await Promise.allSettled([getProduct(productId), getCategories(), getCurrentUser()])
   if (results[0].status !== 'fulfilled') {
-    window.location.replace('/index.jsp')
+    window.location.replace('/')
     return
   }
   product.value = results[0].value

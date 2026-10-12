@@ -23,24 +23,9 @@ public class MerchantCreateServlet extends HttpServlet {
 
     private UserDAO userDAO = new UserDAO();
 
-    /**
-     * Renders the merchant creation form.
-     */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
-            resp.sendRedirect(req.getContextPath() + "/login");
-            return;
-        }
-
-        User user = (User) session.getAttribute("user");
-        if (user.getRole() != Role.ADMIN) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
-            return;
-        }
-
-        req.getRequestDispatcher("/admin/merchant_create.jsp").forward(req, resp);
+        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
 
     /**
@@ -50,23 +35,19 @@ public class MerchantCreateServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         boolean jsonRequest = isJsonRequest(req);
+        if (!jsonRequest) {
+            resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "Submit this form through the Vue app.");
+            return;
+        }
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
-            if (jsonRequest) {
-                writeJsonMessage(resp, HttpServletResponse.SC_UNAUTHORIZED, "Please log in to create a merchant account.");
-                return;
-            }
-            resp.sendRedirect(req.getContextPath() + "/login");
+            writeJsonMessage(resp, HttpServletResponse.SC_UNAUTHORIZED, "Please log in to create a merchant account.");
             return;
         }
 
         User currentUser = (User) session.getAttribute("user");
         if (currentUser.getRole() != Role.ADMIN) {
-            if (jsonRequest) {
-                writeJsonMessage(resp, HttpServletResponse.SC_FORBIDDEN, "Only administrators can create merchant accounts.");
-                return;
-            }
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
+            writeJsonMessage(resp, HttpServletResponse.SC_FORBIDDEN, "Only administrators can create merchant accounts.");
             return;
         }
 
@@ -75,22 +56,12 @@ public class MerchantCreateServlet extends HttpServlet {
         String contactInfo = req.getParameter("contactInfo");
 
         if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
-            if (jsonRequest) {
-                writeJsonMessage(resp, HttpServletResponse.SC_BAD_REQUEST, "Username and password are required.");
-                return;
-            }
-            req.setAttribute("error", "Username and password are required.");
-            req.getRequestDispatcher("/admin/merchant_create.jsp").forward(req, resp);
+            writeJsonMessage(resp, HttpServletResponse.SC_BAD_REQUEST, "Username and password are required.");
             return;
         }
 
         if (userDAO.findByUsername(username) != null) {
-            if (jsonRequest) {
-                writeJsonMessage(resp, HttpServletResponse.SC_CONFLICT, "Username already exists.");
-                return;
-            }
-            req.setAttribute("error", "Username already exists.");
-            req.getRequestDispatcher("/admin/merchant_create.jsp").forward(req, resp);
+            writeJsonMessage(resp, HttpServletResponse.SC_CONFLICT, "Username already exists.");
             return;
         }
 
@@ -107,19 +78,10 @@ public class MerchantCreateServlet extends HttpServlet {
             userDAO.createMerchant(newUser, profile);
             session.setAttribute("globalMessage", "Merchant account created successfully!");
             session.setAttribute("globalMessageType", "success");
-            if (jsonRequest) {
-                writeJsonMessage(resp, HttpServletResponse.SC_OK, "success");
-                return;
-            }
-            resp.sendRedirect(req.getContextPath() + "/admin/dashboard?tab=users");
+            writeJsonMessage(resp, HttpServletResponse.SC_OK, "success");
         } catch (SQLException e) {
             e.printStackTrace();
-            if (jsonRequest) {
-                writeJsonMessage(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
-                return;
-            }
-            req.setAttribute("error", "Database error: " + e.getMessage());
-            req.getRequestDispatcher("/admin/merchant_create.jsp").forward(req, resp);
+            writeJsonMessage(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
         }
     }
 

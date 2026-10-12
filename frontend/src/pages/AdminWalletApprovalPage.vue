@@ -41,7 +41,7 @@ async function loadApprovals() {
   })
   const result = await response.json().catch(() => null)
   if (response.status === 401) {
-    window.location.replace(legacyPageUrl('/login'))
+    window.location.replace('/public/login.jsp')
     return
   }
   if (!response.ok || result?.code !== 200) throw new Error(result?.msg || 'Unable to load wallet approvals.')
@@ -58,7 +58,7 @@ async function loadPage() {
   try {
     const session = await getCurrentUser()
     if (!session.authenticated || session.role !== 'ADMIN') {
-      window.location.replace(legacyPageUrl('/login'))
+      window.location.replace('/public/login.jsp')
       return
     }
     document.title = 'Admin Approval - PrimeGo'

@@ -1,16 +1,11 @@
-<script setup>
-import { onMounted } from 'vue'
-import { legacyPageUrl } from '../api'
-
-onMounted(() => {
-  window.location.replace(legacyPageUrl(window.location.pathname + window.location.search + window.location.hash))
-})
-</script>
-
 <template>
-  <main class="loading-page" aria-live="polite">Loading...</main>
+  <main class="not-found-page">
+    <h1>Page not found</h1>
+    <a href="/">Back to Home</a>
+  </main>
 </template>
 
 <style scoped>
-.loading-page { min-height: 100vh; display: grid; place-items: center; color: #636e72; font-family: 'Poppins', sans-serif; }
+.not-found-page { display: grid; min-height: 100vh; align-content: center; justify-items: center; gap: 16px; color: #333; font-family: 'Poppins', sans-serif; }
+.not-found-page a { color: #d97706; }
 </style>

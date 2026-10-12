@@ -11,6 +11,8 @@ const categories = ref([])
 const loading = ref(true)
 const error = ref('')
 const categoryId = ref('')
+const submitError = ref('')
+const submitting = ref(false)
 
 async function loadPage() {
   try {
@@ -41,6 +43,30 @@ function cancel() {
   window.history.back()
 }
 
+async function publishProduct(event) {
+  submitError.value = ''
+  submitting.value = true
+  try {
+    const response = await fetch(`${legacyBase}/product_add_action`, {
+      method: 'POST',
+      headers: { Accept: 'application/json' },
+      credentials: 'include',
+      body: new FormData(event.currentTarget),
+    })
+    const result = await response.json().catch(() => null)
+    if (response.status === 401) {
+      window.location.replace('/public/login.jsp')
+      return
+    }
+    if (!response.ok || result?.code !== 200) throw new Error(result?.msg || 'Unable to publish this product.')
+    window.location.assign(result.data.redirectUrl || '/merchant/product/product_management.jsp?msg=pending_review')
+  } catch (submitFailure) {
+    submitError.value = submitFailure.message || 'Unable to publish this product.'
+  } finally {
+    submitting.value = false
+  }
+}
+
 onMounted(loadPage)
 </script>
 
@@ -53,11 +79,12 @@ onMounted(loadPage)
       <main>
         <div v-if="loading" class="form-card page-state" aria-live="polite">Loading product form...</div>
         <div v-else-if="error" class="form-card page-state" role="alert">{{ error }}</div>
-        <form v-show="!loading && !error" :action="`${legacyBase}/product_add_action`" method="post" enctype="multipart/form-data" class="form-card">
+        <form v-show="!loading && !error" class="form-card" @submit.prevent="publishProduct">
           <div class="page-header">
             <h2>Publish New Product</h2>
             <p>Fill in the details below to add a new item to your store.</p>
           </div>
+          <p v-if="submitError" class="page-state" role="alert">{{ submitError }}</p>
 
           <div class="form-content-grid">
             <div class="left-col">
@@ -106,7 +133,7 @@ onMounted(loadPage)
 
           <div class="btn-container">
             <button type="button" class="btn-cancel" @click="cancel">Cancel</button>
-            <button type="submit" class="btn-submit">Publish Now</button>
+            <button type="submit" class="btn-submit" :disabled="submitting">{{ submitting ? 'Publishing...' : 'Publish Now' }}</button>
           </div>
         </form>
       </main>

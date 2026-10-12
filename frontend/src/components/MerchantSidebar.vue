@@ -1,6 +1,4 @@
 <script setup>
-import { legacyPageUrl } from '../api'
-
 defineProps({ active: { type: String, default: 'dashboard' } })
 </script>
 
@@ -34,7 +32,7 @@ defineProps({ active: { type: String, default: 'dashboard' } })
         </a>
       </div>
       <div class="menu-group logout-group">
-        <a class="menu-item menu-logout" :href="legacyPageUrl('/logout')" title="Logout">
+        <a class="menu-item menu-logout" href="/logout" title="Logout">
           <span class="pg-mi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg></span>
           <span>Logout</span>
         </a>

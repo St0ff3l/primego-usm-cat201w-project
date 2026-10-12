@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { getCurrentUser, legacyBase, legacyPageUrl } from '../api'
+import { getCurrentUser, legacyBase } from '../api'
 
 const username = ref('')
 const password = ref('')
@@ -13,7 +13,7 @@ onMounted(async () => {
   try {
     const session = await getCurrentUser()
     if (!session.authenticated || session.role !== 'ADMIN') {
-      window.location.replace(legacyPageUrl('/login'))
+      window.location.replace('/public/login.jsp')
       return
     }
     document.title = 'Create Merchant - PrimeGo Admin'

@@ -138,7 +138,7 @@ public class AdminDashboardServlet extends HttpServlet {
             return;
         }
 
-        req.getRequestDispatcher("/admin/admin_dashboard.jsp").forward(req, resp);
+        resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "The Vue app renders this page.");
     }
 
     /**
@@ -218,11 +218,7 @@ public class AdminDashboardServlet extends HttpServlet {
             return;
         }
 
-        // Set message and reload dashboard
-        req.setAttribute("settingsMessage", message);
-        req.setAttribute("settingsMessageType", messageType);
-
-        doGet(req, resp); // Reload dashboard with updated data
+        resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "The Vue app renders this page.");
     }
 
     static String usersJson(List<User> users) {

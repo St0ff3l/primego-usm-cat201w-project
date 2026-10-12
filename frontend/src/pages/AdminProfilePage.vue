@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { getCurrentUser, legacyBase, legacyPageUrl } from '../api'
+import { getCurrentUser, legacyBase } from '../api'
 import AdminBackground from '../components/AdminBackground.vue'
 
 const username = ref('')
@@ -12,7 +12,7 @@ onMounted(async () => {
   try {
     const session = await getCurrentUser()
     if (!session.authenticated) {
-      window.location.replace(legacyPageUrl('/login'))
+      window.location.replace('/public/login.jsp')
       return
     }
     if (session.role !== 'ADMIN') {
@@ -51,8 +51,8 @@ onMounted(async () => {
         </template>
         <p v-else>No additional profile details found.</p>
       </div>
-      <a class="btn-back" :href="legacyPageUrl('/index.jsp')">Back to Home</a>
-      <a class="btn-back logout" :href="legacyPageUrl('/logout')">Logout</a>
+      <a class="btn-back" href="/">Back to Home</a>
+      <a class="btn-back logout" href="/logout">Logout</a>
     </main>
   </div>
 </template>
