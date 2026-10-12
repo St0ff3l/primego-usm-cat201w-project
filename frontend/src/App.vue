@@ -5,6 +5,7 @@ import CheckoutPage from './pages/CheckoutPage.vue'
 import AdminProductReviewDetailPage from './pages/AdminProductReviewDetailPage.vue'
 import AdminProductReviewListPage from './pages/AdminProductReviewListPage.vue'
 import AdminDashboardPage from './pages/AdminDashboardPage.vue'
+import AdminProfilePage from './pages/AdminProfilePage.vue'
 import AdminMerchantCreatePage from './pages/AdminMerchantCreatePage.vue'
 import AdminWalletApprovalPage from './pages/AdminWalletApprovalPage.vue'
 import LegacyFallbackPage from './pages/LegacyFallbackPage.vue'
@@ -33,9 +34,14 @@ const routes = {
   '/login': LoginPage,
   '/public/signup.jsp': SignupPage,
   '/admin/product/review/list': AdminProductReviewListPage,
+  '/admin/product/review_list.jsp': AdminProductReviewListPage,
   '/admin/product/review': AdminProductReviewDetailPage,
+  '/admin/product/review_detail.jsp': AdminProductReviewDetailPage,
   '/admin/dashboard': AdminDashboardPage,
+  '/admin/admin_dashboard.jsp': AdminDashboardPage,
+  '/admin/user/admin_profile.jsp': AdminProfilePage,
   '/admin/merchant/create': AdminMerchantCreatePage,
+  '/admin/merchant_create.jsp': AdminMerchantCreatePage,
   '/admin/wallet/admin_approval.jsp': AdminWalletApprovalPage,
   '/register': SignupPage,
   '/customer/product/search_result.jsp': SearchResultPage,
@@ -44,7 +50,9 @@ const routes = {
   '/customer/order/order_confirmation.jsp': CheckoutPage,
   '/customer/order/payment_success.jsp': PaymentResultPage,
   '/customer/order/payment_failed.jsp': PaymentResultPage,
+  '/customer/order/my_order.jsp': OrderHistoryPage,
   '/customer/orders': OrderHistoryPage,
+  '/customer/user/customer_profile.jsp': ProfilePage,
   '/profile': ProfilePage,
   '/merchant/merchant_dashboard.jsp': MerchantDashboardPage,
   '/merchant/product/product_edit.jsp': MerchantProductEditPage,
@@ -52,6 +60,7 @@ const routes = {
   '/merchant/product/publish.jsp': MerchantPublishPage,
   '/merchant/product/product_management.jsp': MerchantProductsPage,
   '/merchant/order/order_management': MerchantOrdersPage,
+  '/merchant/order/return_address.jsp': MerchantReturnAddressPage,
   '/public/wallet/wallet.jsp': WalletPage,
   '/public/wallet/topup.jsp': TopUpPage,
   '/public/wallet/withdraw.jsp': WithdrawPage,

@@ -53,7 +53,7 @@ async function loadProfile() {
       return
     }
     if (user.role !== 'CUSTOMER') {
-      window.location.replace(user.role === 'MERCHANT' ? '/merchant/user/merchant_profile.jsp' : legacyPageUrl('/profile'))
+      window.location.replace(user.role === 'MERCHANT' ? '/merchant/user/merchant_profile.jsp' : '/admin/user/admin_profile.jsp')
       return
     }
     username.value = user.username || ''

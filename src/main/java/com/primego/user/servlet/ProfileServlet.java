@@ -5,6 +5,7 @@ import com.primego.user.dao.AddressDAO;
 import com.primego.user.dao.ProfileDAO;
 import com.primego.user.dao.UserDAO;
 import com.primego.user.model.CustomerProfile;
+import com.primego.user.model.AdminProfile;
 import com.primego.user.model.Role;
 import com.primego.user.model.User;
 import com.primego.user.model.UserAddress;
@@ -75,7 +76,10 @@ public class ProfileServlet extends HttpServlet {
                 break;
             case ADMIN:
                 if (jsonRequest) {
-                    writeFailure(resp, HttpServletResponse.SC_FORBIDDEN, "Customer profile is not available for this account.");
+                    resp.setContentType("application/json");
+                    resp.setCharacterEncoding("UTF-8");
+                    resp.setHeader("Cache-Control", "no-store");
+                    resp.getWriter().write(adminProfileJson(user, profileDAO.getAdminProfile(userId)));
                     return;
                 }
                 req.setAttribute("profile", profileDAO.getAdminProfile(userId));
@@ -332,6 +336,13 @@ public class ProfileServlet extends HttpServlet {
                 .append(",\"defaultAddress\":").append(address.isDefaultAddress()).append('}');
         }
         return json.append(']').toString();
+    }
+
+    static String adminProfileJson(User user, AdminProfile profile) {
+        String profileJson = profile == null ? "null" : "{\"department\":" + JsonUtil.quote(profile.getDepartment())
+            + ",\"level\":" + profile.getLevel() + "}";
+        return "{\"code\":200,\"msg\":\"success\",\"data\":{\"username\":"
+            + JsonUtil.quote(user.getUsername()) + ",\"profile\":" + profileJson + "}}";
     }
 
     private void writeFailure(HttpServletResponse resp, int status, String message) throws IOException {
