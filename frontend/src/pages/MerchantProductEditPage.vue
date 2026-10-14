@@ -1,9 +1,9 @@
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { getCurrentUser, legacyBase, productImageUrl } from '../api'
+import ImagesUploader from '../components/ImagesUploader.vue'
 import MerchantBackground from '../components/MerchantBackground.vue'
 import PrimegoHeader from '../components/PrimegoHeader.vue'
-import { createImagesUploader } from '../utils/imagesUploader'
 
 const currentUser = ref(null)
 const product = ref(null)
@@ -15,6 +15,7 @@ const loading = ref(true)
 const error = ref('')
 
 const galleryImages = computed(() => images.value.length ? images.value : [{ url: null }])
+const uploaderImages = computed(() => images.value.map((image) => ({ ...image, url: productImageUrl(image.url) })))
 const currentImageUrl = computed(() => productImageUrl(galleryImages.value[currentIndex.value]?.url))
 
 function selectImage(index) {
@@ -75,14 +76,6 @@ async function loadProduct() {
     categories.value = result.data.categories
     images.value = result.data.images
     document.title = 'Edit Product - PrimeGo'
-    await nextTick()
-    const uploader = await createImagesUploader('#photo-upload-container', {
-      inputName: 'newImages',
-      deleteInputName: 'deleteImageIds',
-      sortInputName: 'imageSortOrder',
-      placeholderImg: '/assets/images/product-placeholder.svg',
-    })
-    uploader.setInitialImages(images.value.map((image) => ({ ...image, url: productImageUrl(image.url) })))
   } catch (loadError) {
     error.value = loadError.message || 'Unable to load this product.'
   } finally {
@@ -183,7 +176,7 @@ onMounted(loadProduct)
               <div class="glass-card upload-card">
                 <label class="form-label upload-label">Manage Images</label>
                 <p class="upload-description">Drag images to reorder. First one is Primary.</p>
-                <div id="photo-upload-container"></div>
+                <ImagesUploader input-name="newImages" :initial-images="uploaderImages" delete-input-name="deleteImageIds" sort-input-name="imageSortOrder" :placeholder-img="productImageUrl('assets/images/product-placeholder.svg')" />
               </div>
             </div>
 
@@ -231,8 +224,7 @@ textarea.form-control { flex-grow: 1; min-height: 200px; resize: vertical; line-
 .upload-card { display: flex; height: 100%; flex-direction: column; }
 .upload-label { margin-bottom: 12px; }
 .upload-description { margin-bottom: 15px; color: var(--text-gray); font-size: .8rem; }
-#photo-upload-container { display: flex; flex-grow: 1; flex-direction: column; }
-#photo-upload-container :deep(.iu-upload-area) { min-height: 400px !important; flex-grow: 1; }
+.form-right-col :deep(.iu-upload-area) { min-height: 400px; flex-grow: 1; }
 .whatsapp-icon { margin-right: 4px; color: #25d366; font-size: 1.1rem; }
 .action-bar { display: flex; grid-column: span 2; justify-content: flex-end; gap: 15px; margin-top: 10px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,.05); }
 .btn-action { display: flex; align-items: center; padding: 12px 35px; border: 0; border-radius: 50px; cursor: pointer; font-size: 1rem; font-weight: 600; text-decoration: none; transition: .3s; }

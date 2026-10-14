@@ -1,10 +1,7 @@
-/* ==========================================
- * Images Uploader component styles
- * File: assets/css/images_uploader.css
- * ========================================== */
+/* Images uploader styles */
 
 :root {
-    /* Default theme colors (can be overridden by JSP variables) */
+    /* Default theme colors; page-level values override these. */
     --iu-primary: #4F46E5;
     --iu-bg: #F8FAFC;
     --iu-border: #CBD5E1;

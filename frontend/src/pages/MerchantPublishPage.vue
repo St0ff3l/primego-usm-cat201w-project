@@ -1,10 +1,10 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { getCategories, getCurrentUser, legacyBase } from '../api'
+import ImagesUploader from '../components/ImagesUploader.vue'
 import MerchantBackground from '../components/MerchantBackground.vue'
 import MerchantSidebar from '../components/MerchantSidebar.vue'
 import PrimegoHeader from '../components/PrimegoHeader.vue'
-import { createImagesUploader } from '../utils/imagesUploader'
 
 const currentUser = ref(null)
 const categories = ref([])
@@ -23,14 +23,7 @@ async function loadPage() {
     }
     currentUser.value = user
 
-    const [loadedCategories] = await Promise.all([
-      getCategories(),
-      createImagesUploader('#photo-upload-container', {
-        inputName: 'productImage',
-        placeholderImg: `${legacyBase}/assets/images/product-placeholder.svg`,
-      }),
-    ])
-    categories.value = loadedCategories
+    categories.value = await getCategories()
     document.title = 'Publish Product - Seller Center'
   } catch (loadError) {
     error.value = loadError.message || 'Unable to load the product form.'
@@ -127,7 +120,7 @@ onMounted(loadPage)
 
             <div class="right-col">
               <label class="form-label">Product Images <span>*</span></label>
-              <div id="photo-upload-container"></div>
+              <ImagesUploader input-name="productImage" :placeholder-img="`${legacyBase}/assets/images/product-placeholder.svg`" />
             </div>
           </div>
 
