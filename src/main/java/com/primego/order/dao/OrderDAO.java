@@ -266,6 +266,32 @@ public class OrderDAO {
         return order;
     }
 
+    public Order getOrderByIdForMerchant(int orderId, int merchantId) {
+        Order order = null;
+        String sql = "SELECT o.*, " +
+                "r.Refund_Reason, r.Rejection_Count, r.Merchant_Reject_Reason, r.Refund_Status, r.Refund_Type, " +
+                "r.Return_Address, r.Return_Tracking_Number " +
+                "FROM Orders o " +
+                "LEFT JOIN Refunds r ON o.Orders_Id = r.Orders_Id " +
+                "WHERE o.Orders_Id = ? AND EXISTS (" +
+                "SELECT 1 FROM Order_Item oi JOIN Product p ON oi.Product_Id = p.Product_Id " +
+                "WHERE oi.Orders_Id = o.Orders_Id AND p.merchant_id = ?)";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ps.setInt(2, merchantId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    order = mapRowToOrder(rs);
+                    mapRefundFields(order, rs);
+                    order.setOrderItems(getOrderItemsByOrderId(order.getOrdersId()));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return order;
+    }
+
     public List<Order> getOrdersByMerchantId(int merchantId) {
         List<Order> orderList = new ArrayList<>();
         // DISTINCT ensures an order appears only once even if it contains multiple items from the same merchant.

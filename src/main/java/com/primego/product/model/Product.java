@@ -56,6 +56,10 @@ public class Product {
         return merchantId;
     }
 
+    public boolean belongsToMerchant(int merchantId) {
+        return this.merchantId == merchantId;
+    }
+
     public void setMerchantId(int merchantId) {
         this.merchantId = merchantId;
     }

@@ -2,7 +2,9 @@ package com.primego.wallet.servlet;
 
 import com.primego.wallet.dao.WalletDAO;
 import com.primego.wallet.model.WalletTransaction;
+import com.primego.user.model.Role;
 import com.primego.user.model.User;
+import com.primego.common.util.JsonUtil;
 import com.primego.common.util.PathUtil;
 
 import javax.servlet.ServletException;
@@ -20,7 +22,11 @@ import java.nio.file.Paths;
 import java.util.UUID;
 
 @WebServlet("/WithdrawServlet")
-@MultipartConfig
+@MultipartConfig(
+        fileSizeThreshold = 1024 * 1024 * 2,
+        maxFileSize = 1024 * 1024 * 10,
+        maxRequestSize = 1024 * 1024 * 12
+)
 public class WithdrawServlet extends HttpServlet {
 
     private WalletDAO walletDAO;
@@ -30,11 +36,20 @@ public class WithdrawServlet extends HttpServlet {
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("user");
+        boolean jsonRequest = isJsonRequest(request);
+        HttpSession session = jsonRequest ? request.getSession(false) : request.getSession();
+        User user = session == null ? null : (User) session.getAttribute("user");
 
         if (user == null) {
+            if (jsonRequest) {
+                writeFailure(response, HttpServletResponse.SC_UNAUTHORIZED, "Please log in to submit a withdrawal.");
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/public/login.jsp");
+            return;
+        }
+        if (jsonRequest && user.getRole() != Role.CUSTOMER && user.getRole() != Role.MERCHANT) {
+            writeFailure(response, HttpServletResponse.SC_FORBIDDEN, "This account cannot withdraw wallet funds.");
             return;
         }
 
@@ -42,12 +57,23 @@ public class WithdrawServlet extends HttpServlet {
             // 1. Get amount
             String amountStr = request.getParameter("amount");
             BigDecimal amount = new BigDecimal(amountStr);
+            if (amount.signum() <= 0) {
+                if (jsonRequest) {
+                    writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Enter a valid amount greater than zero.");
+                } else {
+                    writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Please enter a valid amount greater than 0.");
+                }
+                return;
+            }
 
             // 2. Check balance
             BigDecimal currentBalance = walletDAO.getBalance(user.getId());
             if (currentBalance.compareTo(amount) < 0) {
-                request.setAttribute("error", "Insufficient balance.");
-                request.getRequestDispatcher("/public/wallet/withdraw.jsp").forward(request, response);
+                if (jsonRequest) {
+                    writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Withdrawal amount exceeds your available balance.");
+                } else {
+                    writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Withdrawal amount exceeds your available balance.");
+                }
                 return;
             }
 
@@ -55,7 +81,9 @@ public class WithdrawServlet extends HttpServlet {
             Part filePart = request.getPart("receiptImage");
             String fileName = null;
 
-            if (filePart != null && filePart.getSize() > 0) {
+            if (filePart != null && filePart.getSize() > 0 && filePart.getSubmittedFileName() != null
+                    && !filePart.getSubmittedFileName().trim().isEmpty() && filePart.getContentType() != null
+                    && filePart.getContentType().startsWith("image/")) {
                 // Generate unique filename
                 String originalFileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
                 String fileExt = "";
@@ -99,8 +127,11 @@ public class WithdrawServlet extends HttpServlet {
                     }
                 }
             } else {
-                request.setAttribute("error", "Please upload your QR Code.");
-                request.getRequestDispatcher("/public/wallet/withdraw.jsp").forward(request, response);
+                if (jsonRequest) {
+                    writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Please upload a valid QR code image.");
+                } else {
+                    writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Please upload a valid QR code image.");
+                }
                 return;
             }
 
@@ -117,17 +148,53 @@ public class WithdrawServlet extends HttpServlet {
             boolean success = walletDAO.requestWithdraw(transaction);
 
             if (success) {
-                session.setAttribute("message", "Withdrawal request submitted! QR Code uploaded.");
-                response.sendRedirect(request.getContextPath() + "/public/wallet/wallet.jsp");
+                String message = "Withdrawal request submitted! QR Code uploaded.";
+                if (jsonRequest) {
+                    writeSuccess(response, message);
+                } else {
+                    session.setAttribute("message", message);
+                    response.sendRedirect(request.getContextPath() + "/public/wallet/wallet.jsp");
+                }
             } else {
-                request.setAttribute("error", "Failed to submit request.");
-                request.getRequestDispatcher("/public/wallet/withdraw.jsp").forward(request, response);
+                if (jsonRequest) {
+                    writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to submit request.");
+                } else {
+                    writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to submit request.");
+                }
             }
 
+        } catch (NumberFormatException e) {
+            if (jsonRequest) {
+                writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Enter a valid withdrawal amount.");
+            } else {
+                writeFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Enter a valid withdrawal amount.");
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "System error: " + e.getMessage());
-            request.getRequestDispatcher("/public/wallet/withdraw.jsp").forward(request, response);
+            if (jsonRequest) {
+                writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unable to submit your withdrawal request.");
+            } else {
+                writeFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unable to submit your withdrawal request.");
+            }
         }
+    }
+
+    private boolean isJsonRequest(HttpServletRequest request) {
+        return request.getHeader("Accept") != null && request.getHeader("Accept").contains("application/json");
+    }
+
+    private void writeSuccess(HttpServletResponse response, String message) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Cache-Control", "no-store");
+        response.getWriter().write("{\"code\":200,\"msg\":\"success\",\"data\":{\"message\":" + JsonUtil.quote(message) + "}}");
+    }
+
+    private void writeFailure(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Cache-Control", "no-store");
+        response.getWriter().write("{\"code\":" + status + ",\"msg\":" + JsonUtil.quote(message) + "}");
     }
 }

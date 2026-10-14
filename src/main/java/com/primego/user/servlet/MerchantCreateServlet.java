@@ -1,5 +1,6 @@
 package com.primego.user.servlet;
 
+import com.primego.common.util.JsonUtil;
 import com.primego.user.dao.UserDAO;
 import com.primego.user.model.MerchantProfile;
 import com.primego.user.model.Role;
@@ -22,24 +23,9 @@ public class MerchantCreateServlet extends HttpServlet {
 
     private UserDAO userDAO = new UserDAO();
 
-    /**
-     * Renders the merchant creation form.
-     */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
-            resp.sendRedirect(req.getContextPath() + "/login");
-            return;
-        }
-
-        User user = (User) session.getAttribute("user");
-        if (user.getRole() != Role.ADMIN) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
-            return;
-        }
-
-        req.getRequestDispatcher("/admin/merchant_create.jsp").forward(req, resp);
+        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
 
     /**
@@ -47,15 +33,21 @@ public class MerchantCreateServlet extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+        boolean jsonRequest = isJsonRequest(req);
+        if (!jsonRequest) {
+            resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "Submit this form through the Vue app.");
+            return;
+        }
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
-            resp.sendRedirect(req.getContextPath() + "/login");
+            writeJsonMessage(resp, HttpServletResponse.SC_UNAUTHORIZED, "Please log in to create a merchant account.");
             return;
         }
 
         User currentUser = (User) session.getAttribute("user");
         if (currentUser.getRole() != Role.ADMIN) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
+            writeJsonMessage(resp, HttpServletResponse.SC_FORBIDDEN, "Only administrators can create merchant accounts.");
             return;
         }
 
@@ -63,9 +55,13 @@ public class MerchantCreateServlet extends HttpServlet {
         String password = req.getParameter("password");
         String contactInfo = req.getParameter("contactInfo");
 
+        if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
+            writeJsonMessage(resp, HttpServletResponse.SC_BAD_REQUEST, "Username and password are required.");
+            return;
+        }
+
         if (userDAO.findByUsername(username) != null) {
-            req.setAttribute("error", "Username already exists.");
-            req.getRequestDispatcher("/admin/merchant_create.jsp").forward(req, resp);
+            writeJsonMessage(resp, HttpServletResponse.SC_CONFLICT, "Username already exists.");
             return;
         }
 
@@ -82,11 +78,27 @@ public class MerchantCreateServlet extends HttpServlet {
             userDAO.createMerchant(newUser, profile);
             session.setAttribute("globalMessage", "Merchant account created successfully!");
             session.setAttribute("globalMessageType", "success");
-            resp.sendRedirect(req.getContextPath() + "/admin/dashboard?tab=users");
+            writeJsonMessage(resp, HttpServletResponse.SC_OK, "success");
         } catch (SQLException e) {
             e.printStackTrace();
-            req.setAttribute("error", "Database error: " + e.getMessage());
-            req.getRequestDispatcher("/admin/merchant_create.jsp").forward(req, resp);
+            writeJsonMessage(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
         }
+    }
+
+    static String resultJson(int code, String message) {
+        return "{\"code\":" + code + ",\"msg\":" + JsonUtil.quote(message) + "}";
+    }
+
+    private boolean isJsonRequest(HttpServletRequest req) {
+        String accept = req.getHeader("Accept");
+        return accept != null && accept.contains("application/json");
+    }
+
+    private void writeJsonMessage(HttpServletResponse resp, int code, String message) throws IOException {
+        resp.setStatus(code);
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+        resp.setHeader("Cache-Control", "no-store");
+        resp.getWriter().write(resultJson(code, message));
     }
 }

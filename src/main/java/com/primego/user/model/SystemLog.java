@@ -65,7 +65,7 @@ public class SystemLog {
 
     /**
      * Formats the timestamp into a readable time string (hh:mm a).
-     * Useful for JSP display.
+     * Useful for UI display.
      *
      * @return The formatted time string, or empty if null.
      */

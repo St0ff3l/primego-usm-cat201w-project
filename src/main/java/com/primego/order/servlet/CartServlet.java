@@ -1,5 +1,6 @@
 package com.primego.order.servlet;
 
+import com.primego.common.util.JsonUtil;
 import com.primego.order.dao.CartDAO;
 import com.primego.order.model.Cart;
 import com.primego.order.model.CartItem;
@@ -31,6 +32,8 @@ public class CartServlet extends HttpServlet {
         String action = request.getParameter("action");
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
+        boolean jsonRequest = request.getHeader("Accept") != null
+            && request.getHeader("Accept").contains("application/json");
 
         // Initialize the cart in session. If the user is logged in, load from the database; otherwise create a new cart.
         Cart cart = (Cart) session.getAttribute("cart");
@@ -43,7 +46,13 @@ public class CartServlet extends HttpServlet {
             session.setAttribute("cart", cart);
         }
 
-        if ("add".equals(action)) {
+        if ("view".equals(action)) {
+            if (user != null) {
+                cart = cartDAO.getCartByUserId(user.getId());
+                session.setAttribute("cart", cart);
+            }
+            sendCartResponse(request, response, session, cart, jsonRequest);
+        } else if ("add".equals(action)) {
             String productIdStr = request.getParameter("productId");
             if (productIdStr != null) {
                 int productId = Integer.parseInt(productIdStr);
@@ -74,7 +83,7 @@ public class CartServlet extends HttpServlet {
                     }
                 }
             }
-            response.sendRedirect(request.getContextPath() + "/customer/order/cart.jsp");
+            sendCartResponse(request, response, session, cart, jsonRequest);
 
         } else if ("update".equals(action)) {
             String productIdStr = request.getParameter("productId");
@@ -106,7 +115,7 @@ public class CartServlet extends HttpServlet {
                     // Ignore invalid numeric input.
                 }
             }
-            response.sendRedirect(request.getContextPath() + "/customer/order/cart.jsp");
+            sendCartResponse(request, response, session, cart, jsonRequest);
 
         } else if ("remove".equals(action)) {
             // Remove a single product from the cart.
@@ -120,7 +129,7 @@ public class CartServlet extends HttpServlet {
                     cartDAO.removeItemFromCart(cartId, productId);
                 }
             }
-            response.sendRedirect(request.getContextPath() + "/customer/order/cart.jsp");
+            sendCartResponse(request, response, session, cart, jsonRequest);
 
         } else if ("clear".equals(action)) {
             // Clear all items from the cart.
@@ -129,14 +138,46 @@ public class CartServlet extends HttpServlet {
                 int cartId = cartDAO.getOrCreateCartId(user.getId());
                 cartDAO.clearCart(cartId);
             }
-            response.sendRedirect(request.getContextPath() + "/customer/order/cart.jsp");
+            sendCartResponse(request, response, session, cart, jsonRequest);
         } else {
             // Default behavior: refresh the cart from the database for logged-in users.
             if (user != null) {
                 cart = cartDAO.getCartByUserId(user.getId());
                 session.setAttribute("cart", cart);
             }
-            response.sendRedirect(request.getContextPath() + "/customer/order/cart.jsp");
+            sendCartResponse(request, response, session, cart, jsonRequest);
         }
+    }
+
+    private void sendCartResponse(HttpServletRequest request, HttpServletResponse response,
+                                  HttpSession session, Cart cart, boolean jsonRequest) throws IOException {
+        if (!jsonRequest) {
+            response.sendRedirect(request.getContextPath() + "/customer/order/cart.jsp");
+            return;
+        }
+
+        String error = (String) session.getAttribute("cartError");
+        session.removeAttribute("cartError");
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Cache-Control", "no-store");
+        StringBuilder data = new StringBuilder("{\"items\":[");
+        boolean first = true;
+        for (CartItem item : cart.getItems()) {
+            ProductDTO product = item.getProduct();
+            if (product == null) continue;
+            if (!first) data.append(',');
+            first = false;
+            data.append("{\"product\":{\"id\":").append(product.getProductId())
+                .append(",\"name\":").append(JsonUtil.quote(product.getProductName()))
+                .append(",\"price\":").append(product.getProductPrice() == null ? "null" : product.getProductPrice().toPlainString())
+                .append(",\"stockQuantity\":").append(product.getProductStockQuantity())
+                .append(",\"imageUrl\":").append(JsonUtil.quote(product.getPrimaryImageUrl()))
+                .append("},\"quantity\":").append(item.getQuantity())
+                .append(",\"totalPrice\":").append(item.getTotalPrice().toPlainString()).append('}');
+        }
+        data.append("],\"total\":").append(cart.getTotalPrice().toPlainString())
+            .append(",\"error\":").append(JsonUtil.quote(error)).append('}');
+        response.getWriter().write("{\"code\":200,\"msg\":\"success\",\"data\":" + data + "}");
     }
 }

@@ -1,6 +1,7 @@
 package com.primego.user.servlet;
 
 import com.primego.common.listener.ActiveSessionListener;
+import com.primego.common.util.JsonUtil;
 import com.primego.common.util.PasswordUtil;
 import com.primego.order.dao.OrderDAO;
 import com.primego.user.dao.LogDAO;
@@ -19,6 +20,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.format.TextStyle;
 
 import java.util.List;
@@ -41,14 +44,23 @@ public class AdminDashboardServlet extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        boolean jsonRequest = isJsonRequest(req);
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
+            if (jsonRequest) {
+                writeFailure(resp, HttpServletResponse.SC_UNAUTHORIZED, "Please log in to view the admin dashboard.");
+                return;
+            }
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
         User user = (User) session.getAttribute("user");
         if (user.getRole() != Role.ADMIN) {
+            if (jsonRequest) {
+                writeFailure(resp, HttpServletResponse.SC_FORBIDDEN, "Only administrators can access the dashboard.");
+                return;
+            }
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
             return;
         }
@@ -61,10 +73,14 @@ public class AdminDashboardServlet extends HttpServlet {
         req.setAttribute("adminProfile", adminProfile);
 
         // --- 1. Dashboard Overview Data (Real) ---
-        req.setAttribute("totalUsers", userDAO.countUsers());
-        req.setAttribute("activeSessions", ActiveSessionListener.getActiveSessionsCount());
-        req.setAttribute("dailyVisits", new VisitDAO().getTodayVisits());
-        req.setAttribute("revenue", orderDAO.countTotalTransactions());
+        int totalUsers = userDAO.countUsers();
+        int activeSessions = ActiveSessionListener.getActiveSessionsCount();
+        int dailyVisits = new VisitDAO().getTodayVisits();
+        int revenue = orderDAO.countTotalTransactions();
+        req.setAttribute("totalUsers", totalUsers);
+        req.setAttribute("activeSessions", activeSessions);
+        req.setAttribute("dailyVisits", dailyVisits);
+        req.setAttribute("revenue", revenue);
 
         // --- Real Chart Data (Last 7 Days) ---
         Map<java.time.LocalDate, Integer> visitsMap = new VisitDAO().getLast7DaysVisits();
@@ -95,10 +111,14 @@ public class AdminDashboardServlet extends HttpServlet {
         req.setAttribute("userChartData", customerCount + ", " + merchantCount + ", " + adminCount);
 
         // Fetch Order Lists for Transaction Modal
-        req.setAttribute("paidOrders", orderDAO.getOrdersByStatusForAdmin("PAID"));
-        req.setAttribute("shippedOrders", orderDAO.getOrdersByStatusForAdmin("SHIPPED"));
-        req.setAttribute("completedOrders", orderDAO.getOrdersByStatusForAdmin("COMPLETED"));
-        req.setAttribute("cancelledOrders", orderDAO.getOrdersByStatusForAdmin("CANCELLED"));
+        List<com.primego.order.model.Order> paidOrders = orderDAO.getOrdersByStatusForAdmin("PAID");
+        List<com.primego.order.model.Order> shippedOrders = orderDAO.getOrdersByStatusForAdmin("SHIPPED");
+        List<com.primego.order.model.Order> completedOrders = orderDAO.getOrdersByStatusForAdmin("COMPLETED");
+        List<com.primego.order.model.Order> cancelledOrders = orderDAO.getOrdersByStatusForAdmin("CANCELLED");
+        req.setAttribute("paidOrders", paidOrders);
+        req.setAttribute("shippedOrders", shippedOrders);
+        req.setAttribute("completedOrders", completedOrders);
+        req.setAttribute("cancelledOrders", cancelledOrders);
 
         // --- Real System Logs ---
         List<SystemLog> logs = logDAO.getRecentLogs(5);
@@ -108,7 +128,17 @@ public class AdminDashboardServlet extends HttpServlet {
         List<User> allUsers = userDAO.findAllUsers();
         req.setAttribute("userList", allUsers);
 
-        req.getRequestDispatcher("/admin/admin_dashboard.jsp").forward(req, resp);
+        if (jsonRequest) {
+            Object globalMessage = session.getAttribute("globalMessage");
+            session.removeAttribute("globalMessage");
+            session.removeAttribute("globalMessageType");
+            writeDashboardJson(resp, totalUsers, activeSessions, dailyVisits, revenue, visitsMap,
+                customerCount, merchantCount, adminCount, logs, allUsers, adminProfile,
+                paidOrders, shippedOrders, completedOrders, cancelledOrders, (String) globalMessage);
+            return;
+        }
+
+        resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "The Vue app renders this page.");
     }
 
     /**
@@ -116,14 +146,24 @@ public class AdminDashboardServlet extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+        boolean jsonRequest = isJsonRequest(req);
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
+            if (jsonRequest) {
+                writeFailure(resp, HttpServletResponse.SC_UNAUTHORIZED, "Please log in to update admin settings.");
+                return;
+            }
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
         User user = (User) session.getAttribute("user");
         if (user.getRole() != Role.ADMIN) {
+            if (jsonRequest) {
+                writeFailure(resp, HttpServletResponse.SC_FORBIDDEN, "Only administrators can update settings.");
+                return;
+            }
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
             return;
         }
@@ -147,10 +187,11 @@ public class AdminDashboardServlet extends HttpServlet {
             String newPassword = req.getParameter("newPassword");
             String confirmPassword = req.getParameter("confirmPassword");
 
-            if (!PasswordUtil.checkPassword(currentPassword, user.getPassword())) {
+            if (currentPassword == null || currentPassword.isEmpty()
+                    || !PasswordUtil.checkPassword(currentPassword, user.getPassword())) {
                 message = "Current password is incorrect.";
                 messageType = "error";
-            } else if (!newPassword.equals(confirmPassword)) {
+            } else if (newPassword == null || newPassword.isEmpty() || !newPassword.equals(confirmPassword)) {
                 message = "New passwords do not match.";
                 messageType = "error";
             } else {
@@ -166,11 +207,120 @@ public class AdminDashboardServlet extends HttpServlet {
             }
         }
 
-        // Set message and reload dashboard
-        req.setAttribute("settingsMessage", message);
-        req.setAttribute("settingsMessageType", messageType);
+        if (jsonRequest) {
+            AdminProfile savedProfile = profileDAO.getAdminProfile(user.getId());
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            resp.setHeader("Cache-Control", "no-store");
+            resp.getWriter().write("{\"code\":200,\"msg\":\"success\",\"data\":{\"settingsMessage\":"
+                + JsonUtil.quote(message) + ",\"settingsMessageType\":" + JsonUtil.quote(messageType)
+                + ",\"department\":" + JsonUtil.quote(savedProfile == null ? null : savedProfile.getDepartment()) + "}}");
+            return;
+        }
 
-        doGet(req, resp); // Reload dashboard with updated data
+        resp.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "The Vue app renders this page.");
+    }
+
+    static String usersJson(List<User> users) {
+        StringBuilder json = new StringBuilder("[");
+        for (int i = 0; i < users.size(); i++) {
+            if (i > 0) json.append(',');
+            User user = users.get(i);
+            json.append("{\"id\":").append(user.getId())
+                .append(",\"username\":").append(JsonUtil.quote(user.getUsername()))
+                .append(",\"role\":").append(JsonUtil.quote(user.getRole() == null ? null : user.getRole().name()))
+                .append(",\"status\":").append(user.getStatus())
+                .append(",\"createdAt\":").append(timestampJson(user.getCreatedAt())).append('}');
+        }
+        return json.append(']').toString();
+    }
+
+    static String ordersJson(List<com.primego.order.model.Order> orders, boolean includeTracking) {
+        StringBuilder json = new StringBuilder("[");
+        for (int i = 0; i < orders.size(); i++) {
+            if (i > 0) json.append(',');
+            com.primego.order.model.Order order = orders.get(i);
+            json.append("{\"ordersId\":").append(order.getOrdersId())
+                .append(",\"customerId\":").append(order.getCustomerId())
+                .append(",\"totalAmount\":").append(decimalJson(order.getTotalAmount()))
+                .append(",\"createdAt\":").append(timestampJson(order.getCreatedAt()));
+            if (includeTracking) json.append(",\"trackingNumber\":").append(JsonUtil.quote(order.getTrackingNumber()));
+            json.append('}');
+        }
+        return json.append(']').toString();
+    }
+
+    private String logsJson(List<SystemLog> logs) {
+        StringBuilder json = new StringBuilder("[");
+        for (int i = 0; i < logs.size(); i++) {
+            if (i > 0) json.append(',');
+            SystemLog log = logs.get(i);
+            json.append("{\"level\":").append(JsonUtil.quote(log.getLevel()))
+                .append(",\"message\":").append(JsonUtil.quote(log.getMessage()))
+                .append(",\"time\":").append(JsonUtil.quote(log.getTime())).append('}');
+        }
+        return json.append(']').toString();
+    }
+
+    private String visitsJson(Map<LocalDate, Integer> visits) {
+        StringBuilder json = new StringBuilder("[");
+        int i = 0;
+        for (Map.Entry<LocalDate, Integer> entry : visits.entrySet()) {
+            if (i++ > 0) json.append(',');
+            String label = entry.getKey().getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
+            json.append("{\"label\":").append(JsonUtil.quote(label))
+                .append(",\"count\":").append(entry.getValue()).append('}');
+        }
+        return json.append(']').toString();
+    }
+
+    private void writeDashboardJson(HttpServletResponse resp, int totalUsers, int activeSessions,
+            int dailyVisits, int revenue, Map<LocalDate, Integer> visits, int customers, int merchants,
+            int admins, List<SystemLog> logs, List<User> users, AdminProfile profile,
+            List<com.primego.order.model.Order> paidOrders, List<com.primego.order.model.Order> shippedOrders,
+            List<com.primego.order.model.Order> completedOrders, List<com.primego.order.model.Order> cancelledOrders,
+            String globalMessage) throws IOException {
+        String profileJson = profile == null ? "null" : "{\"department\":" + JsonUtil.quote(profile.getDepartment())
+            + ",\"level\":" + profile.getLevel() + "}";
+        String data = "\"totalUsers\":" + totalUsers
+            + ",\"activeSessions\":" + activeSessions
+            + ",\"dailyVisits\":" + dailyVisits
+            + ",\"revenue\":" + revenue
+            + ",\"visits\":" + visitsJson(visits)
+            + ",\"userDistribution\":[" + customers + ',' + merchants + ',' + admins + ']'
+            + ",\"logs\":" + logsJson(logs)
+            + ",\"users\":" + usersJson(users)
+            + ",\"adminProfile\":" + profileJson
+            + ",\"transactions\":{\"paid\":" + ordersJson(paidOrders, false)
+            + ",\"shipped\":" + ordersJson(shippedOrders, true)
+            + ",\"completed\":" + ordersJson(completedOrders, false)
+            + ",\"cancelled\":" + ordersJson(cancelledOrders, false) + '}'
+            + ",\"globalMessage\":" + JsonUtil.quote(globalMessage);
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+        resp.setHeader("Cache-Control", "no-store");
+        resp.getWriter().write("{\"code\":200,\"msg\":\"success\",\"data\":{" + data + "}}");
+    }
+
+    private static String timestampJson(java.sql.Timestamp value) {
+        return JsonUtil.quote(value == null ? null : value.toString());
+    }
+
+    private static String decimalJson(BigDecimal value) {
+        return JsonUtil.quote(value == null ? null : value.toPlainString());
+    }
+
+    private boolean isJsonRequest(HttpServletRequest req) {
+        String accept = req.getHeader("Accept");
+        return accept != null && accept.contains("application/json");
+    }
+
+    private void writeFailure(HttpServletResponse resp, int status, String message) throws IOException {
+        resp.setStatus(status);
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+        resp.setHeader("Cache-Control", "no-store");
+        resp.getWriter().write("{\"code\":" + status + ",\"msg\":" + JsonUtil.quote(message) + "}");
     }
 
 }

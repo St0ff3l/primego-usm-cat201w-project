@@ -6,6 +6,7 @@ import com.primego.order.model.Cart;
 import com.primego.order.model.CartItem;
 import com.primego.order.model.Order;
 import com.primego.order.model.OrderItem;
+import com.primego.common.util.JsonUtil;
 import com.primego.product.dao.ProductDAO;
 import com.primego.product.model.ProductDTO;
 import com.primego.user.model.User;
@@ -22,6 +23,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @WebServlet("/placeOrder")
@@ -35,12 +38,19 @@ public class PlaceOrderServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        boolean jsonRequest = request.getHeader("Accept") != null
+            && request.getHeader("Accept").contains("application/json");
         HttpSession session = request.getSession();
 
         // 1) Get the current logged-in user.
         User user = (User) session.getAttribute("user");
         if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/views/auth/login.jsp");
+            if (jsonRequest) {
+                writeJsonFailure(response, HttpServletResponse.SC_UNAUTHORIZED, "Please log in to checkout.");
+                return;
+            }
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
         int userId = user.getId();
@@ -57,19 +67,24 @@ public class PlaceOrderServlet extends HttpServlet {
         }
 
         if (!isPinValid) {
-            request.setAttribute("errorMessage", "Invalid Payment PIN. Please try again.");
-            request.setAttribute("showPinModal", true);
-            request.getRequestDispatcher("/customer/order/order_confirmation.jsp").forward(request, response);
+            if (jsonRequest) {
+                writeJsonFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid Payment PIN. Please try again.");
+                return;
+            }
+            response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "Submit checkout through the Vue app.");
             return;
         }
 
         // =========================================================================
         // Step 2: Prepare grouped items (group by merchantId to support split orders).
         // =========================================================================
-        request.setCharacterEncoding("UTF-8");
         String fullName = request.getParameter("fullName");
         String address = request.getParameter("address");
         String phone = request.getParameter("phone");
+        if (jsonRequest && (isBlank(fullName) || isBlank(address) || isBlank(phone))) {
+            writeJsonFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Please select a delivery address.");
+            return;
+        }
         String fullAddress = fullName + ", " + address + ", Phone: " + phone;
 
         // Group items by merchantId.
@@ -82,7 +97,7 @@ public class PlaceOrderServlet extends HttpServlet {
         String quantityStr = request.getParameter("quantity");
 
         String[] selectedIds = request.getParameterValues("selectedProductIds");
-        List<String> selectedIdList = (selectedIds != null) ? Arrays.asList(selectedIds) : new ArrayList<>();
+        List<String> selectedIdList = selectedIds == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(selectedIds));
 
         if ("true".equals(isBuyNow) && productIdStr != null) {
             // Scenario A: Buy now
@@ -94,6 +109,12 @@ public class PlaceOrderServlet extends HttpServlet {
                 }
 
                 ProductDTO product = productDAO.getProductById(productId);
+                if (jsonRequest && (product == null || product.getProductPrice() == null
+                    || quantity < 1 || quantity > product.getProductStockQuantity())) {
+                    writeJsonFailure(response, HttpServletResponse.SC_BAD_REQUEST,
+                        "This product is no longer available in the selected quantity.");
+                    return;
+                }
                 if (product != null) {
                     int merchantId = product.getMerchantId();
                     merchantItemsMap.putIfAbsent(merchantId, new ArrayList<>());
@@ -103,11 +124,50 @@ public class PlaceOrderServlet extends HttpServlet {
                     merchantItemsMap.get(merchantId).add(item);
                 }
             } catch (NumberFormatException e) {
+                if (jsonRequest) {
+                    writeJsonFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid product or quantity.");
+                    return;
+                }
                 e.printStackTrace();
             }
         } else {
             // Scenario B: Checkout from cart (iterate cart items and group by merchant).
             Cart cart = (Cart) session.getAttribute("cart");
+            Map<String, Integer> quantityOverrides = new HashMap<>();
+            if (jsonRequest) {
+                cart = cartDAO.getCartByUserId(userId);
+                session.setAttribute("cart", cart);
+
+                if (selectedIdList.isEmpty()) {
+                    for (CartItem item : cart.getItems()) {
+                        if (item.getProduct() != null) selectedIdList.add(String.valueOf(item.getProduct().getProductId()));
+                    }
+                }
+                String[] quantities = request.getParameterValues("selectedQuantities");
+                if (quantities == null || quantities.length != selectedIdList.size()
+                    || new HashSet<>(selectedIdList).size() != selectedIdList.size()) {
+                    writeJsonFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid cart item quantities.");
+                    return;
+                }
+                for (int i = 0; i < selectedIdList.size(); i++) {
+                    try {
+                        int quantity = Integer.parseInt(quantities[i]);
+                        if (quantity < 1) throw new NumberFormatException();
+                        quantityOverrides.put(selectedIdList.get(i), quantity);
+                    } catch (NumberFormatException e) {
+                        writeJsonFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid cart item quantity.");
+                        return;
+                    }
+                }
+                Set<String> cartProductIds = new HashSet<>();
+                for (CartItem item : cart.getItems()) {
+                    if (item.getProduct() != null) cartProductIds.add(String.valueOf(item.getProduct().getProductId()));
+                }
+                if (!cartProductIds.containsAll(selectedIdList)) {
+                    writeJsonFailure(response, HttpServletResponse.SC_BAD_REQUEST, "Some selected cart items are no longer available.");
+                    return;
+                }
+            }
             if (cart != null && !cart.getItems().isEmpty()) {
                 for (CartItem cartItem : cart.getItems()) {
                     String pId = String.valueOf(cartItem.getProduct().getProductId());
@@ -116,20 +176,32 @@ public class PlaceOrderServlet extends HttpServlet {
                         continue;
                     }
 
+                    int quantity = quantityOverrides.getOrDefault(pId, cartItem.getQuantity());
+                    if (jsonRequest && (cartItem.getProduct().getProductPrice() == null
+                        || quantity > cartItem.getProduct().getProductStockQuantity())) {
+                        writeJsonFailure(response, HttpServletResponse.SC_BAD_REQUEST,
+                            "A selected item is no longer available in the requested quantity.");
+                        return;
+                    }
+
                     // Relies on product data in the cart item containing a valid merchantId.
                     int merchantId = cartItem.getProduct().getMerchantId();
 
                     merchantItemsMap.putIfAbsent(merchantId, new ArrayList<>());
 
                     // Create an order item and add it to the merchant group.
-                    OrderItem item = createOrderItem(cartItem.getProduct(), cartItem.getQuantity());
+                    OrderItem item = createOrderItem(cartItem.getProduct(), quantity);
                     merchantItemsMap.get(merchantId).add(item);
                 }
             }
         }
 
         if (merchantItemsMap.isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/index.jsp?error=EmptyOrder");
+            if (jsonRequest) {
+                writeJsonFailure(response, HttpServletResponse.SC_BAD_REQUEST, "There are no items to checkout.");
+                return;
+            }
+            response.sendRedirect(request.getContextPath() + "/?error=EmptyOrder");
             return;
         }
 
@@ -170,6 +242,13 @@ public class PlaceOrderServlet extends HttpServlet {
         // =========================================================================
         BigDecimal currentBalance = walletDAO.getBalance(userId);
         if (currentBalance.compareTo(grandTotal) < 0) {
+            if (jsonRequest) {
+                String message = "Insufficient wallet balance. Please top up your wallet.";
+                String failureUrl = request.getContextPath() + "/customer/order/payment_failed.jsp?errorMessage="
+                    + URLEncoder.encode(message, StandardCharsets.UTF_8);
+                writeJsonRedirect(response, HttpServletResponse.SC_PAYMENT_REQUIRED, message, failureUrl);
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/customer/order/payment_failed.jsp");
             return;
         }
@@ -209,12 +288,40 @@ public class PlaceOrderServlet extends HttpServlet {
             }
 
             // Redirect to the success page. Parameter name: orderIds
-            response.sendRedirect(request.getContextPath() + "/customer/order/payment_success.jsp?orderIds=" + sb.toString());
+            String successUrl = request.getContextPath() + "/customer/order/payment_success.jsp?orderIds=" + sb;
+            if (jsonRequest) {
+                writeJsonRedirect(response, HttpServletResponse.SC_OK, "success", successUrl);
+            } else {
+                response.sendRedirect(successUrl);
+            }
         } else {
+            if (jsonRequest) {
+                writeJsonFailure(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Order processing failed. Please try again.");
+                return;
+            }
             // Failure
-            request.setAttribute("errorMessage", "Order processing failed. Please try again.");
-            request.getRequestDispatcher("/customer/order/order_confirmation.jsp").forward(request, response);
+            response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "Submit checkout through the Vue app.");
         }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private void writeJsonFailure(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write("{\"code\":" + status + ",\"msg\":" + JsonUtil.quote(message) + "}");
+    }
+
+    private void writeJsonRedirect(HttpServletResponse response, int status, String message, String redirectUrl) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write("{\"code\":" + status + ",\"msg\":" + JsonUtil.quote(message)
+            + ",\"data\":{\"redirectUrl\":" + JsonUtil.quote(redirectUrl) + "}}");
     }
 
     // Helper: convert ProductDTO into OrderItem to avoid duplicating mapping logic.
